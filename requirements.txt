@@ -1,0 +1,7 @@
+openai
+PyPDF2
+scikit-learn
+numpy
+
+#tiktoken
+#tomli
