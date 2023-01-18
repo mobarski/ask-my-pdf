@@ -67,15 +67,17 @@ def ui_pdf_file():
 			ss['vectors'] = vectors
 			ss['texts'] = pages
 			ss['debug']['pages'] = pages
-			ss['debug']['vectors'] = vectors
-	uploaded_file = st.file_uploader('pdf file', type='pdf', key='pdf_file', on_change=on_change, label_visibility="collapsed")
+			#ss['debug']['vectors'] = vectors
+	disabled = not ss.get('api_key')
+	uploaded_file = st.file_uploader('pdf file', type='pdf', key='pdf_file', disabled=disabled, on_change=on_change, label_visibility="collapsed")
 
 def ui_show_debug():
 	st.checkbox('show debug section', key='show_debug')
 
 def ui_question():
 	st.write('## 3. Ask questions')
-	st.text_area('question', key='question', height=100, placeholder='Enter question here', help='', label_visibility="collapsed")
+	disabled = not ss.get('api_key')
+	st.text_area('question', key='question', height=100, placeholder='Enter question here', help='', label_visibility="collapsed", disabled=disabled)
 
 # REF: Hypotetical Document Embeddings
 def ui_hyde_answer():
@@ -92,7 +94,8 @@ def ui_debug():
 		st.write(ss.get('debug',{}))
 
 def b_ask():
-	if st.button('get answer'):
+	disabled = not ss.get('api_key')
+	if st.button('get answer', disabled=disabled):
 		text = ss.get('question','')
 		resp = model.query(text, ss, limit=5)
 		ss['debug']['model.query.resp'] = resp
