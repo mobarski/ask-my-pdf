@@ -6,7 +6,7 @@ def pdf_to_pages(file):
 	"extract text (pages) from pdf file"
 	pages = []
 	pdf = PyPDF2.PdfReader(file)
-	for p in range(pdf.numPages):
+	for p in range(len(pdf.pages)):
 		page = pdf.getPage(p)
 		text = page.extractText()
 		pages += [text]
