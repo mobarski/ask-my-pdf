@@ -1,5 +1,5 @@
-__version__ = "0.1"
-app_name = "QnA"
+__version__ = "0.2"
+app_name = "Ask my PDF"
 
 # BOILERPLATE
 
@@ -23,7 +23,9 @@ import model
 
 def ui_about():
 	st.markdown(f"""
-	# Questions and Answers {__version__}
+	# Ask my PDF
+	version {__version__}
+	
 	Proof of Concept question answering system built on top of GPT3.
 	""")
 
