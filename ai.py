@@ -1,6 +1,6 @@
 "AI (LLM) adapter"
 
-BUTCHER_EMBEDDINGS = 11 # this should be None, as it cuts the embedding vector to n first values (for debugging)
+BUTCHER_EMBEDDINGS = None # this should be None, as it cuts the embedding vector to n first values (for debugging)
 
 import openai
 

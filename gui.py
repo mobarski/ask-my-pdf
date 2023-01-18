@@ -1,4 +1,4 @@
-__version__ = "0.1"
+__version__ = "0.1.1"
 app_name = "Ask my PDF"
 
 # BOILERPLATE
