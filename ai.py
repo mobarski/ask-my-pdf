@@ -2,6 +2,14 @@
 
 BUTCHER_EMBEDDINGS = None # this should be None, as it cuts the embedding vector to n first values (for debugging)
 
+
+import tiktoken
+encoder = tiktoken.get_encoding("gpt2")
+def get_token_count(text):
+	tokens = encoder.encode(text)
+	return len(tokens)
+
+
 import openai
 
 def use_key(api_key):
@@ -10,7 +18,7 @@ def use_key(api_key):
 def complete(prompt, temperature=0.0):
 	kwargs = dict(
 		model = 'text-davinci-003',
-		max_tokens = 4000,
+		max_tokens = 4000 - get_token_count(prompt),
 		temperature = temperature,
 		prompt = prompt,
 		n = 1,

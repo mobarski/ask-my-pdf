@@ -22,15 +22,21 @@ def index_pages(pages):
 		vectors += [v]
 	return vectors
 
-
+###############################################################################
 
 import ai
 
-def query(text, db, temperature=0.0, limit=None):
+def query(text, db, temperature=0.0, hyde=False, limit=None):
 	out = {}
 	
+	if hyde:
+		out['hyde'] = hypotetical_answer(text, db, temperature=temperature)
+	
 	# RANK PAGES
-	resp = ai.embedding(text)
+	if hyde:
+		resp = ai.embedding(out['hyde']['text'])
+	else:
+		resp = ai.embedding(text)
 	v = resp['vector']
 	id_list, dist_list, raw_list = query_by_vector(v, db, limit=limit)
 	
@@ -60,3 +66,9 @@ def query(text, db, temperature=0.0, limit=None):
 	out['text'] = answer
 	return out
 
+def hypotetical_answer(text, db, temperature=0.0):
+	prompt = f"""
+	Write document that answers the question: "{text}"
+	Document:"""
+	resp = ai.complete(prompt, temperature=temperature)
+	return resp

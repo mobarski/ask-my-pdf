@@ -1,4 +1,4 @@
-__version__ = "0.1.2"
+__version__ = "0.2"
 app_name = "Ask my PDF"
 
 # BOILERPLATE
@@ -77,6 +77,10 @@ def ui_show_debug():
 def ui_temperature():
 	st.slider('temperature', 0.0, 1.0, 0.0, 0.1, key='temperature', format='%0.1f')
 
+def ui_hyde():
+	st.checkbox('use HyDE', key='use_hyde')
+
+
 def ui_question():
 	st.write('## 3. Ask questions')
 	disabled = not ss.get('api_key')
@@ -96,12 +100,14 @@ def ui_debug():
 		st.write('### debug')
 		st.write(ss.get('debug',{}))
 
+
 def b_ask():
 	disabled = not ss.get('api_key')
 	if st.button('get answer', disabled=disabled):
 		text = ss.get('question','')
 		temperature = ss.get('temperature', 0.0)
-		resp = model.query(text, ss, temperature=temperature, limit=5)
+		hyde = ss.get('use_hyde')
+		resp = model.query(text, ss, temperature=temperature, hyde=hyde, limit=5)
 		ss['debug']['model.query.resp'] = resp
 		
 		q = text.strip()
@@ -130,6 +136,7 @@ with st.sidebar:
 		b_clear()
 		ui_show_debug()
 		ui_temperature()
+		ui_hyde()
 
 ui_api_key()
 ui_pdf_file()
