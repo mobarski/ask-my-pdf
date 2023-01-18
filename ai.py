@@ -7,11 +7,11 @@ import openai
 def use_key(api_key):
 	openai.api_key = api_key
 
-def complete(prompt):
+def complete(prompt, temperature=0.0):
 	kwargs = dict(
 		model = 'text-davinci-003',
-		max_tokens = 2000,
-		temperature = 0.0,
+		max_tokens = 4000,
+		temperature = temperature,
 		prompt = prompt,
 		n = 1,
 	)

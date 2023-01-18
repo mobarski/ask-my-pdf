@@ -74,6 +74,9 @@ def ui_pdf_file():
 def ui_show_debug():
 	st.checkbox('show debug section', key='show_debug')
 
+def ui_temperature():
+	st.slider('temperature', 0.0, 1.0, 0.0, 0.1, key='temperature', format='%0.1f')
+
 def ui_question():
 	st.write('## 3. Ask questions')
 	disabled = not ss.get('api_key')
@@ -97,7 +100,8 @@ def b_ask():
 	disabled = not ss.get('api_key')
 	if st.button('get answer', disabled=disabled):
 		text = ss.get('question','')
-		resp = model.query(text, ss, limit=5)
+		temperature = ss.get('temperature', 0.0)
+		resp = model.query(text, ss, temperature=temperature, limit=5)
 		ss['debug']['model.query.resp'] = resp
 		
 		q = text.strip()
@@ -125,6 +129,7 @@ with st.sidebar:
 	with st.expander('advanced'):
 		b_clear()
 		ui_show_debug()
+		ui_temperature()
 
 ui_api_key()
 ui_pdf_file()

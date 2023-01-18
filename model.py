@@ -26,7 +26,7 @@ def index_pages(pages):
 
 import ai
 
-def query(text, db, limit=None):
+def query(text, db, temperature=0.0, limit=None):
 	out = {}
 	
 	# RANK PAGES
@@ -47,13 +47,15 @@ def query(text, db, limit=None):
 		Answer:"""
 	
 	# GET ANSWER
-	resp2 = ai.complete(prompt)
+	resp2 = ai.complete(prompt, temperature=temperature)
 	answer = resp2['text']
+	usage = resp2['usage']
 	
 	# OUTPUT
 	out['id_list'] = id_list
 	out['dist_list'] = dist_list
 	#out['query.vector'] = resp['vector']
+	out['usage'] = usage
 	out['prompt'] = prompt
 	out['text'] = answer
 	return out
