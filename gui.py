@@ -1,6 +1,10 @@
 __version__ = "0.2"
 app_name = "Ask my PDF"
 
+DEFAULT_TASK = """
+Task: Answer question based on context.
+"""
+
 # BOILERPLATE
 
 import streamlit as st
@@ -60,11 +64,14 @@ def ui_api_key():
 
 def ui_pdf_file():
 	st.write('## 2. Upload your PDF file')
+	pg = st.progress(0)
 	def on_change():
 		if ss['pdf_file']:
 			pages = pdf.pdf_to_pages(ss['pdf_file'])
-			vectors = model.index_pages(pages)
-			ss['vectors'] = vectors
+			if ss['fix_text']:
+				for i in range(len(pages)):
+					pages[i] = model.fix_text_errors(pages[i], pg)
+			ss['vectors'] = model.index_pages(pages, pg)
 			ss['texts'] = pages
 			ss['debug']['pages'] = pages
 			#ss['debug']['vectors'] = vectors
@@ -74,11 +81,21 @@ def ui_pdf_file():
 def ui_show_debug():
 	st.checkbox('show debug section', key='show_debug')
 
+def ui_fix_text():
+	st.checkbox('fix common text errors', value=True, key='fix_text')
+
 def ui_temperature():
 	st.slider('temperature', 0.0, 1.0, 0.0, 0.1, key='temperature', format='%0.1f')
 
+def ui_max_pages():
+	st.number_input('max pages', 1, 5, 3, key='max_pages')
+
+
 def ui_hyde():
 	st.checkbox('use HyDE', key='use_hyde')
+
+def ui_task():
+	st.text_area('task / persona', DEFAULT_TASK.strip(), key='task')
 
 
 def ui_question():
@@ -103,11 +120,13 @@ def ui_debug():
 
 def b_ask():
 	disabled = not ss.get('api_key')
-	if st.button('get answer', disabled=disabled):
+	if st.button('get answer', disabled=disabled, type='primary'):
 		text = ss.get('question','')
 		temperature = ss.get('temperature', 0.0)
 		hyde = ss.get('use_hyde')
-		resp = model.query(text, ss, temperature=temperature, hyde=hyde, limit=5)
+		max_pages = ss.get('max_pages',1)
+		task = ss.get('task')
+		resp = model.query(text, ss, task=task, temperature=temperature, hyde=hyde, max_pages=max_pages, limit=5)
 		ss['debug']['model.query.resp'] = resp
 		
 		q = text.strip()
@@ -120,7 +139,7 @@ def b_clear():
 
 def output_add(q,a):
 	if 'output' not in ss: ss['output'] = ''
-	new = f'#### Q: {q}\nA: {a}\n\n'
+	new = f'#### {q}\n{a}\n\n'
 	ss['output'] = new + ss['output']
 
 # LAYOUT
@@ -133,10 +152,13 @@ with st.sidebar:
 	ui_alpha()
 	ui_spacer(2)
 	with st.expander('advanced'):
-		b_clear()
 		ui_show_debug()
+		b_clear()
 		ui_temperature()
+		ui_max_pages()
+		ui_fix_text()
 		ui_hyde()
+		ui_task()
 
 ui_api_key()
 ui_pdf_file()
@@ -145,3 +167,7 @@ ui_hyde_answer()
 b_ask()
 ui_output()
 ui_debug()
+
+
+# Popraw poniższy tekst łącząc niektóre słowa tak aby tworzyły poprawne wyrazy. Staraj się jak najmniej zmienić tekst.
+# Fix common OCR problems in the text below.

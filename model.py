@@ -1,9 +1,9 @@
+
 from sklearn.metrics.pairwise import cosine_distances
 
 def query_by_vector(vector, db, limit=None):
 	vectors = db['vectors']
 	texts = db['texts']
-	print('index.query', vector, len(vectors), flush=True) # XXX
 	#
 	sim = cosine_distances([vector], vectors)[0]
 	#
@@ -14,19 +14,25 @@ def query_by_vector(vector, db, limit=None):
 	text_list = [texts[x] for x in id_list] if texts else ['ERROR']*len(id_list)
 	return id_list, dist_list, text_list
 
-def index_pages(pages):
+def index_pages(pages, pg=None):
 	vectors = []
 	for p,page in enumerate(pages):
 		resp = ai.embedding(page)
 		v = resp['vector']
 		vectors += [v]
+		if pg:
+			pg.progress((p+1)/len(pages))
 	return vectors
 
 ###############################################################################
 
 import ai
+import re
 
-def query(text, db, temperature=0.0, hyde=False, limit=None):
+def fix_text_errors(text, pg=None):
+	return re.sub('\s+[-]\s+','',text)
+
+def query(text, db, task=None, temperature=0.0, max_pages=1, hyde=False, limit=None):
 	out = {}
 	
 	if hyde:
@@ -41,9 +47,22 @@ def query(text, db, temperature=0.0, hyde=False, limit=None):
 	id_list, dist_list, raw_list = query_by_vector(v, db, limit=limit)
 	
 	# BUILD PROMPT
-	context = raw_list[0]
+	
+	# build context
+	context = ''
+	context += raw_list[0]
+	context_len = ai.get_token_count(context)
+	pages_cnt = 1
+	for i in range(1,max_pages):
+		page_len = ai.get_token_count(raw_list[i])
+		if context_len+page_len <= 3000: # TODO: remove hardcode
+			context += '\n\n'+raw_list[i]
+			context_len += page_len
+			pages_cnt +=1
+	out['context_pages_cnt'] = pages_cnt
+	out['context_len'] = context_len
 	prompt = f"""
-		Answer question based on context.
+		{task or 'Task: Answer question based on context.'}
 		
 		Context:
 		{context}
