@@ -1,9 +1,11 @@
-__version__ = "0.2"
+__version__ = "0.3"
 app_name = "Ask my PDF"
 
-DEFAULT_TASK = """
-Task: Answer question based on context.
-"""
+DEFAULT_TASK = "Answer the question truthfully based only on the context. Mention all important aspects but try to be short."
+# "Answer question based on context."
+# "Answer question based on context. The answers sould be elaborate and based only on the context."
+# "Answer question based on context. Mention all important aspects but try to be short."
+# "Answer question based only on the context. Mention all important aspects but try to be short."
 
 # BOILERPLATE
 
@@ -19,8 +21,6 @@ header3 = st.empty()
 
 # IMPORTS
 
-import pdf
-import ai
 import model
 
 # COMPONENTS
@@ -59,7 +59,7 @@ def ui_spacer(n=2, line=False, next_n=0):
 def ui_api_key():
 	st.write('## 1. Enter your OpenAI API key')
 	def on_change():
-		ai.use_key(ss['api_key'])
+		model.use_key(ss['api_key'])
 	st.text_input('OpenAI API key', type='password', key='api_key', on_change=on_change, label_visibility="collapsed")
 
 def ui_pdf_file():
@@ -67,14 +67,12 @@ def ui_pdf_file():
 	pg = st.progress(0)
 	def on_change():
 		if ss['pdf_file']:
-			pages = pdf.pdf_to_pages(ss['pdf_file'])
-			if ss['fix_text']:
-				for i in range(len(pages)):
-					pages[i] = model.fix_text_errors(pages[i], pg)
-			ss['vectors'] = model.index_pages(pages, pg)
-			ss['texts'] = pages
-			ss['debug']['pages'] = pages
-			#ss['debug']['vectors'] = vectors
+			index = model.index_file(ss['pdf_file'], fix_text=ss['fix_text'], frag_size=ss['frag_size'], pg=pg)
+			ss['index'] = index
+			ss['debug']['n_pages'] = len(index['pages'])
+			ss['debug']['n_texts'] = len(index['texts'])
+			ss['debug']['pages'] = index['pages']
+			ss['debug']['texts'] = index['texts']
 	disabled = not ss.get('api_key')
 	uploaded_file = st.file_uploader('pdf file', type='pdf', key='pdf_file', disabled=disabled, on_change=on_change, label_visibility="collapsed")
 
@@ -87,8 +85,9 @@ def ui_fix_text():
 def ui_temperature():
 	st.slider('temperature', 0.0, 1.0, 0.0, 0.1, key='temperature', format='%0.1f')
 
-def ui_max_pages():
-	st.number_input('max pages', 1, 5, 3, key='max_pages')
+def ui_fragments():
+	st.number_input('fragment size', 0,2000,1000, step=200, key='frag_size')
+	st.number_input('max fragments', 1, 10, 2, key='max_frags')
 
 
 def ui_hyde():
@@ -124,9 +123,10 @@ def b_ask():
 		text = ss.get('question','')
 		temperature = ss.get('temperature', 0.0)
 		hyde = ss.get('use_hyde')
-		max_pages = ss.get('max_pages',1)
 		task = ss.get('task')
-		resp = model.query(text, ss, task=task, temperature=temperature, hyde=hyde, max_pages=max_pages, limit=5)
+		max_frags = ss.get('max_frags',1)
+		index = ss.get('index',{})
+		resp = model.query(text, index, task=task, temperature=temperature, hyde=hyde, max_frags=max_frags, limit=max_frags+2)
 		ss['debug']['model.query.resp'] = resp
 		
 		q = text.strip()
@@ -154,9 +154,9 @@ with st.sidebar:
 	with st.expander('advanced'):
 		ui_show_debug()
 		b_clear()
-		ui_temperature()
-		ui_max_pages()
+		ui_fragments()
 		ui_fix_text()
+		ui_temperature()
 		ui_hyde()
 		ui_task()
 
