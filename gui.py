@@ -1,4 +1,4 @@
-__version__ = "0.3"
+__version__ = "0.3.1"
 app_name = "Ask my PDF"
 
 DEFAULT_TASK = "Answer the question truthfully based only on the context. Mention all important aspects but try to be short."
@@ -83,7 +83,8 @@ def ui_fix_text():
 	st.checkbox('fix common text errors', value=True, key='fix_text')
 
 def ui_temperature():
-	st.slider('temperature', 0.0, 1.0, 0.0, 0.1, key='temperature', format='%0.1f')
+	#st.slider('temperature', 0.0, 1.0, 0.0, 0.1, key='temperature', format='%0.1f')
+	ss['temperature'] = 0.0
 
 def ui_fragments():
 	st.number_input('fragment size', 0,2000,1000, step=200, key='frag_size')
