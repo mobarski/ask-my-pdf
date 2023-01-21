@@ -43,13 +43,17 @@ def index_file(f, fix_text=False, frag_size=0, pg=None):
 	return out
 
 def split_pages_into_fragments(pages, frag_size):
+	page_offset = [0]
+	for p,page in enumerate(pages):
+		page_offset += [page_offset[-1]+len(page)+1]
+	# TODO: del page_offset[-1] ???
 	if frag_size:
 		text = ' '.join(pages)
-		return text_to_fragments(text, frag_size)
+		return text_to_fragments(text, frag_size, page_offset)
 	else:
 		return pages
 
-def text_to_fragments(text, size):
+def text_to_fragments(text, size, page_offset):
 	if size and len(text)>size:
 		out = []
 		pos = 0
@@ -74,11 +78,11 @@ def find_eos(text):
 def fix_text_errors(text, pg=None):
 	return re.sub('\s+[-]\s+','',text)
 
-def query(text, index, task=None, temperature=0.0, max_frags=1, hyde=False, limit=None):
+def query(text, index, task=None, temperature=0.0, max_frags=1, hyde=False, hyde_prompt=None, limit=None):
 	out = {}
 	
 	if hyde:
-		out['hyde'] = hypotetical_answer(text, index, temperature=temperature)
+		out['hyde'] = hypotetical_answer(text, index, hyde_prompt=hyde_prompt, temperature=temperature)
 	
 	# RANK FRAGMENTS
 	if hyde:
@@ -127,9 +131,11 @@ def query(text, index, task=None, temperature=0.0, max_frags=1, hyde=False, limi
 	out['text'] = answer
 	return out
 
-def hypotetical_answer(text, index, temperature=0.0):
+def hypotetical_answer(text, index, hyde_prompt=None, temperature=0.0):
+	hyde_prompt = hyde_prompt or 'Write document that answers the question.'
 	prompt = f"""
-	Write document that answers the question: "{text}"
+	{hyde_prompt}
+	Question: "{text}"
 	Document:"""
 	resp = ai.complete(prompt, temperature=temperature)
 	return resp

@@ -1,11 +1,16 @@
-__version__ = "0.3.1"
+__version__ = "0.3.2"
 app_name = "Ask my PDF"
 
-DEFAULT_TASK = "Answer the question truthfully based only on the context. Mention all important aspects but try to be short."
+DEFAULT_TASK = "Answer the question truthfully based on the text below. " \
+	"Include verbatim quote and a comment where to find it in the text (ie name of the section and page number). " \
+	"After the quote write an explanation (in the new paragraph) for a young reader."
 # "Answer question based on context."
 # "Answer question based on context. The answers sould be elaborate and based only on the context."
 # "Answer question based on context. Mention all important aspects but try to be short."
 # "Answer question based only on the context. Mention all important aspects but try to be short."
+# "Answer the question truthfully based on the text below. Include verbatim quote and a comment where to find it in the text (ie name of the section and page number)."
+
+DEFAULT_HYDE = "Write an example answer to the following question. Don't write generic answer, just assume everything that is not known."
 
 # BOILERPLATE
 
@@ -95,8 +100,10 @@ def ui_hyde():
 	st.checkbox('use HyDE', key='use_hyde')
 
 def ui_task():
-	st.text_area('task / persona', DEFAULT_TASK.strip(), key='task')
+	st.text_area('task / persona prompt', DEFAULT_TASK.strip(), key='task')
 
+def ui_hyde_prompt():
+	st.text_area('HyDE prompt', DEFAULT_HYDE, key='hyde_prompt')
 
 def ui_question():
 	st.write('## 3. Ask questions')
@@ -124,10 +131,11 @@ def b_ask():
 		text = ss.get('question','')
 		temperature = ss.get('temperature', 0.0)
 		hyde = ss.get('use_hyde')
+		hyde_prompt = ss.get('hyde_prompt')
 		task = ss.get('task')
 		max_frags = ss.get('max_frags',1)
 		index = ss.get('index',{})
-		resp = model.query(text, index, task=task, temperature=temperature, hyde=hyde, max_frags=max_frags, limit=max_frags+2)
+		resp = model.query(text, index, task=task, temperature=temperature, hyde=hyde, hyde_prompt=hyde_prompt, max_frags=max_frags, limit=max_frags+2)
 		ss['debug']['model.query.resp'] = resp
 		
 		q = text.strip()
@@ -159,6 +167,7 @@ with st.sidebar:
 		ui_fix_text()
 		ui_temperature()
 		ui_hyde()
+		ui_hyde_prompt()
 		ui_task()
 
 ui_api_key()
