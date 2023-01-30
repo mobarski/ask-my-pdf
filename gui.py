@@ -1,16 +1,28 @@
-__version__ = "0.3.2"
+__version__ = "0.3.3"
 app_name = "Ask my PDF"
 
-DEFAULT_TASK = "Answer the question truthfully based on the text below. " \
-	"Include verbatim quote and a comment where to find it in the text (ie name of the section and page number). " \
-	"After the quote write an explanation (in the new paragraph) for a young reader."
-# "Answer question based on context."
-# "Answer question based on context. The answers sould be elaborate and based only on the context."
-# "Answer question based on context. Mention all important aspects but try to be short."
-# "Answer question based only on the context. Mention all important aspects but try to be short."
-# "Answer the question truthfully based on the text below. Include verbatim quote and a comment where to find it in the text (ie name of the section and page number)."
+TASK_PROMPT = {
+	'v4':
+		"Answer the question truthfully based on the text below. " \
+		"Include verbatim quote and a comment where to find it in the text (ie name of the section and page number). " \
+		"After the quote write an explanation (in the new paragraph) for a young reader.",
+	'v3': 'Answer the question truthfully based on the text below. Include verbatim quote and a comment where to find it in the text (ie name of the section and page number).',
+	'v2': 'Answer question based on context. The answers sould be elaborate and based only on the context.',
+	'v1': 'Answer question based on context.',
+	# 'v5':
+		# "Generate a comprehensive and informative answer for a given question solely based on the provided document fragments. " \
+		# "You must only use information from the provided fragments. Use an unbiased and journalistic tone. Combine fragments together into coherent answer. " \
+		# "Do not repeat text. Cite fragments using [${number}] notation. Only cite the most relevant fragments that answer the question accurately. " \
+		# "If different fragments refer to different entities with the same name, write separate answer for each entity.",
+}
 
 DEFAULT_HYDE = "Write an example answer to the following question. Don't write generic answer, just assume everything that is not known."
+
+# TODO
+SUMMARY_PROMPT = {
+	'v2':'Describe the document from which the fragment is extracted. Omit any details.',
+	'v1':'Describe the document from which the fragment is extracted. Do not describe the fragment, focus on figuring out what kind document it is.',
+}
 
 # BOILERPLATE
 
@@ -39,17 +51,15 @@ def ui_about():
 	""")
 
 def ui_author():
-	st.write("""
-		Made by [Maciej Obarski](https://www.linkedin.com/in/mobarski/)<br>
-		aka [@KerbalFPV](https://twitter.com/KerbalFPV)"""
-		, unsafe_allow_html=True)
+	st.write("Made by [Maciej Obarski](https://www.linkedin.com/in/mobarski/).", unsafe_allow_html=True)
 
 
 def ui_alpha():
 	st.markdown("""
 		❤️ Thank you for your interest in my application.
 		Please be aware that it is currently in an early alpha version
-		and may contain bugs 🐛 or unfinished features.
+		and may contain bugs or unfinished features.
+		If you like this app you can [follow me](https://twitter.com/KerbalFPV) on Twitter for news and updates.
 		""")
 
 
@@ -78,6 +88,7 @@ def ui_pdf_file():
 			ss['debug']['n_texts'] = len(index['texts'])
 			ss['debug']['pages'] = index['pages']
 			ss['debug']['texts'] = index['texts']
+			ss['debug']['summary'] = index['summary']
 	disabled = not ss.get('api_key')
 	uploaded_file = st.file_uploader('pdf file', type='pdf', key='pdf_file', disabled=disabled, on_change=on_change, label_visibility="collapsed")
 
@@ -99,8 +110,15 @@ def ui_fragments():
 def ui_hyde():
 	st.checkbox('use HyDE', key='use_hyde')
 
+def ui_hyde_summary():
+	st.checkbox('use summary in HyDE', key='use_hyde_summary')
+
+def ui_task_template():
+	st.selectbox('task prompt template', TASK_PROMPT.keys(), key='task_name')
+
 def ui_task():
-	st.text_area('task / persona prompt', DEFAULT_TASK.strip(), key='task')
+	x = ss['task_name']
+	st.text_area('task prompt', TASK_PROMPT[x], key='task')
 
 def ui_hyde_prompt():
 	st.text_area('HyDE prompt', DEFAULT_HYDE, key='hyde_prompt')
@@ -132,10 +150,14 @@ def b_ask():
 		temperature = ss.get('temperature', 0.0)
 		hyde = ss.get('use_hyde')
 		hyde_prompt = ss.get('hyde_prompt')
+		if ss.get('use_hyde_summary'):
+			summary = ss['index']['summary']
+			hyde_prompt += f" Context: {summary}\n\n"
 		task = ss.get('task')
 		max_frags = ss.get('max_frags',1)
 		index = ss.get('index',{})
-		resp = model.query(text, index, task=task, temperature=temperature, hyde=hyde, hyde_prompt=hyde_prompt, max_frags=max_frags, limit=max_frags+2)
+		with st.spinner('preparing answer'):
+			resp = model.query(text, index, task=task, temperature=temperature, hyde=hyde, hyde_prompt=hyde_prompt, max_frags=max_frags, limit=max_frags+2)
 		ss['debug']['model.query.resp'] = resp
 		
 		q = text.strip()
@@ -166,9 +188,11 @@ with st.sidebar:
 		ui_fragments()
 		ui_fix_text()
 		ui_temperature()
-		ui_hyde()
-		ui_hyde_prompt()
+		ui_task_template()
 		ui_task()
+		ui_hyde()
+		ui_hyde_summary()
+		ui_hyde_prompt()
 
 ui_api_key()
 ui_pdf_file()

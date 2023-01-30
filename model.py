@@ -36,10 +36,13 @@ def index_file(f, fix_text=False, frag_size=0, pg=None):
 			pages[i] = fix_text_errors(pages[i], pg)
 	texts = split_pages_into_fragments(pages, frag_size)
 	vectors = get_vectors(texts, pg)
+	summary_prompt = f"{texts[0]}\n\nDescribe the document from which the fragment is extracted. Omit any details.\n\n"
+	summary = ai.complete(summary_prompt)
 	out = {}
 	out['pages']   = pages
 	out['texts']   = texts
 	out['vectors'] = vectors
+	out['summary'] = summary['text']
 	return out
 
 def split_pages_into_fragments(pages, frag_size):
