@@ -1,28 +1,9 @@
-__version__ = "0.3.3"
+__version__ = "0.3.4"
 app_name = "Ask my PDF"
 
-TASK_PROMPT = {
-	'v4':
-		"Answer the question truthfully based on the text below. " \
-		"Include verbatim quote and a comment where to find it in the text (ie name of the section and page number). " \
-		"After the quote write an explanation (in the new paragraph) for a young reader.",
-	'v3': 'Answer the question truthfully based on the text below. Include verbatim quote and a comment where to find it in the text (ie name of the section and page number).',
-	'v2': 'Answer question based on context. The answers sould be elaborate and based only on the context.',
-	'v1': 'Answer question based on context.',
-	# 'v5':
-		# "Generate a comprehensive and informative answer for a given question solely based on the provided document fragments. " \
-		# "You must only use information from the provided fragments. Use an unbiased and journalistic tone. Combine fragments together into coherent answer. " \
-		# "Do not repeat text. Cite fragments using [${number}] notation. Only cite the most relevant fragments that answer the question accurately. " \
-		# "If different fragments refer to different entities with the same name, write separate answer for each entity.",
-}
-
-DEFAULT_HYDE = "Write an example answer to the following question. Don't write generic answer, just assume everything that is not known."
-
-# TODO
-SUMMARY_PROMPT = {
-	'v2':'Describe the document from which the fragment is extracted. Omit any details.',
-	'v1':'Describe the document from which the fragment is extracted. Do not describe the fragment, focus on figuring out what kind document it is.',
-}
+from prompts import TASK_PROMPT
+from prompts import DEFAULT_HYDE
+from prompts import SUMMARY_PROMPT
 
 # BOILERPLATE
 
@@ -170,8 +151,9 @@ def b_clear():
 
 def output_add(q,a):
 	if 'output' not in ss: ss['output'] = ''
-	new = f'#### {q}\n{a}\n\n'
+	new = f'#### {q}\n{a}\n\n'.replace('$',r'\$')
 	ss['output'] = new + ss['output']
+	print('A:',a,flush=True) # XXX
 
 # LAYOUT
 

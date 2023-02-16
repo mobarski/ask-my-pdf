@@ -36,7 +36,7 @@ def index_file(f, fix_text=False, frag_size=0, pg=None):
 			pages[i] = fix_text_errors(pages[i], pg)
 	texts = split_pages_into_fragments(pages, frag_size)
 	vectors = get_vectors(texts, pg)
-	summary_prompt = f"{texts[0]}\n\nDescribe the document from which the fragment is extracted. Omit any details.\n\n"
+	summary_prompt = f"{texts[0]}\n\nDescribe the document from which the fragment is extracted. Omit any details.\n\n" # TODO: move to prompts.py
 	summary = ai.complete(summary_prompt)
 	out = {}
 	out['pages']   = pages
@@ -118,7 +118,7 @@ def query(text, index, task=None, temperature=0.0, max_frags=1, hyde=False, hyde
 		
 		Question: {text}
 		
-		Answer:"""
+		Answer:""" # TODO: move to prompts.py
 	
 	# GET ANSWER
 	resp2 = ai.complete(prompt, temperature=temperature)
@@ -139,7 +139,7 @@ def hypotetical_answer(text, index, hyde_prompt=None, temperature=0.0):
 	prompt = f"""
 	{hyde_prompt}
 	Question: "{text}"
-	Document:"""
+	Document:""" # TODO: move to prompts.py
 	resp = ai.complete(prompt, temperature=temperature)
 	return resp
 
