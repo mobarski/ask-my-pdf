@@ -7,6 +7,7 @@ def use_key(api_key):
 	ai.use_key(api_key)
 
 def query_by_vector(vector, index, limit=None):
+	"return (ids, distances and texts) sorted by cosine distance"
 	vectors = index['vectors']
 	texts = index['texts']
 	#
@@ -20,6 +21,7 @@ def query_by_vector(vector, index, limit=None):
 	return id_list, dist_list, text_list
 
 def get_vectors(text_list, pg=None):
+	"transform texts into embedding vectors"
 	vectors = []
 	for i,text in enumerate(text_list):
 		resp = ai.embedding(text)
@@ -30,10 +32,11 @@ def get_vectors(text_list, pg=None):
 	return vectors
 
 def index_file(f, fix_text=False, frag_size=0, pg=None):
+	"return vector index (dictionary) for a given PDF file"
 	pages = pdf.pdf_to_pages(f)
 	if fix_text:
 		for i in range(len(pages)):
-			pages[i] = fix_text_errors(pages[i], pg)
+			pages[i] = fix_text_problems(pages[i], pg)
 	texts = split_pages_into_fragments(pages, frag_size)
 	vectors = get_vectors(texts, pg)
 	summary_prompt = f"{texts[0]}\n\nDescribe the document from which the fragment is extracted. Omit any details.\n\n" # TODO: move to prompts.py
@@ -46,6 +49,7 @@ def index_file(f, fix_text=False, frag_size=0, pg=None):
 	return out
 
 def split_pages_into_fragments(pages, frag_size):
+	"split pages (list of texts) into smaller fragments (list of texts)"
 	page_offset = [0]
 	for p,page in enumerate(pages):
 		page_offset += [page_offset[-1]+len(page)+1]
@@ -57,6 +61,7 @@ def split_pages_into_fragments(pages, frag_size):
 		return pages
 
 def text_to_fragments(text, size, page_offset):
+	"split single text into smaller fragments (list of texts)"
 	if size and len(text)>size:
 		out = []
 		pos = 0
@@ -74,14 +79,18 @@ def text_to_fragments(text, size, page_offset):
 		return [text]
 
 def find_eos(text):
+	"return list of all end-of-sentence offsets"
 	return [x.span()[1] for x in re.finditer('[.!?]\s+',text)]
 
 ###############################################################################
 
-def fix_text_errors(text, pg=None):
-	return re.sub('\s+[-]\s+','',text)
+def fix_text_problems(text, pg=None):
+	"fix common text problems"
+	text = re.sub('\s+[-]\s+','',text) # word continuation in the next line
+	return text
 
 def query(text, index, task=None, temperature=0.0, max_frags=1, hyde=False, hyde_prompt=None, limit=None):
+	"get dictionary with the answer for the given question (text)."
 	out = {}
 	
 	if hyde:
@@ -135,6 +144,7 @@ def query(text, index, task=None, temperature=0.0, max_frags=1, hyde=False, hyde
 	return out
 
 def hypotetical_answer(text, index, hyde_prompt=None, temperature=0.0):
+	"get hypotethical answer for the question (text)"
 	hyde_prompt = hyde_prompt or 'Write document that answers the question.'
 	prompt = f"""
 	{hyde_prompt}

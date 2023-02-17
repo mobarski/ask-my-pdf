@@ -1,5 +1,7 @@
 # INFO: some prompts are still in model.py
 
+# TODO: Ignore OCR problems in the text below.
+
 TASK_PROMPT = {
 	'v5': (
 			"Answer the question truthfully based on the text below. "

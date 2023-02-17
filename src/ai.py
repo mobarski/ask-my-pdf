@@ -1,4 +1,5 @@
 "AI (LLM) adapter"
+# TODO: replace with ai_bricks.ai_openai
 
 BUTCHER_EMBEDDINGS = None # this should be None, as it cuts the embedding vector to n first values (for debugging)
 

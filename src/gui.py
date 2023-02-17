@@ -13,9 +13,9 @@ ss = st.session_state
 if 'debug' not in ss: ss['debug'] = {}
 import css
 st.write(f'<style>{css.v1}</style>', unsafe_allow_html=True)
-header1 = st.empty()
-header2 = st.empty()
-header3 = st.empty()
+header1 = st.empty() # for errors / messages
+header2 = st.empty() # for errors / messages
+header3 = st.empty() # for errors / messages
 
 # IMPORTS
 
@@ -183,7 +183,3 @@ ui_hyde_answer()
 b_ask()
 ui_output()
 ui_debug()
-
-
-# Popraw poniższy tekst łącząc niektóre słowa tak aby tworzyły poprawne wyrazy. Staraj się jak najmniej zmienić tekst.
-# Fix common OCR problems in the text below.
