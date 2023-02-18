@@ -1,4 +1,4 @@
-__version__ = "0.3.4"
+__version__ = "0.3.5"
 app_name = "Ask my PDF"
 
 from prompts import TASK_PROMPT
@@ -23,27 +23,6 @@ import model
 
 # COMPONENTS
 
-def ui_about():
-	st.markdown(f"""
-	# Ask my PDF
-	version {__version__}
-	
-	Proof of Concept question answering system built on top of GPT3.
-	""")
-
-def ui_author():
-	st.write("Made by [Maciej Obarski](https://www.linkedin.com/in/mobarski/).", unsafe_allow_html=True)
-
-
-def ui_alpha():
-	st.markdown("""
-		❤️ Thank you for your interest in my application.
-		Please be aware that it is currently in an early alpha version
-		and may contain bugs or unfinished features.
-		If you like this app you can [follow me](https://twitter.com/KerbalFPV) on Twitter for news and updates.
-		""")
-
-
 def ui_spacer(n=2, line=False, next_n=0):
 	for _ in range(n):
 		st.write('')
@@ -51,6 +30,25 @@ def ui_spacer(n=2, line=False, next_n=0):
 		st.tabs([' '])
 	for _ in range(next_n):
 		st.write('')
+
+def ui_info():
+	st.markdown(f"""
+	# Ask my PDF
+	version {__version__}
+	
+	Question answering system built on top of GPT3.
+	""")
+	ui_spacer(1)
+	st.write("Made by [Maciej Obarski](https://www.linkedin.com/in/mobarski/).", unsafe_allow_html=True)
+	ui_spacer(1)
+	st.markdown("""
+		Thank you for your interest in my application.
+		Please be aware that it is only a Proof of Concept system
+		and may contain bugs or unfinished features.
+		If you like this app you can ❤️ [follow me](https://twitter.com/KerbalFPV) on Twitter for news and updates.
+		""")
+	ui_spacer(1)
+	st.markdown('Source code can be found [here](https://github.com/mobarski/ask-my-pdf).')
 
 def ui_api_key():
 	st.write('## 1. Enter your OpenAI API key')
@@ -158,11 +156,7 @@ def output_add(q,a):
 # LAYOUT
 
 with st.sidebar:
-	ui_about()
-	ui_spacer(2)
-	ui_author()
-	ui_spacer(0,False,1)
-	ui_alpha()
+	ui_info()
 	ui_spacer(2)
 	with st.expander('advanced'):
 		ui_show_debug()
