@@ -1,4 +1,4 @@
-__version__ = "0.3.5.1"
+__version__ = "0.3.5.2"
 app_name = "Ask my PDF"
 
 from prompts import TASK_PROMPT
@@ -83,8 +83,8 @@ def ui_temperature():
 	ss['temperature'] = 0.0
 
 def ui_fragments():
-	st.number_input('fragment size', 0,2000,1000, step=200, key='frag_size')
-	st.number_input('max fragments', 1, 10, 2, key='max_frags')
+	st.number_input('fragment size', 0,2000,600, step=200, key='frag_size')
+	st.number_input('max fragments', 1, 10, 4, key='max_frags')
 
 
 def ui_hyde():
