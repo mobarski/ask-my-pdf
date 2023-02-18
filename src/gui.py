@@ -1,4 +1,4 @@
-__version__ = "0.3.5"
+__version__ = "0.3.5.1"
 app_name = "Ask my PDF"
 
 from prompts import TASK_PROMPT

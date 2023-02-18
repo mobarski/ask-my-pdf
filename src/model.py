@@ -42,8 +42,8 @@ def index_file(f, fix_text=False, frag_size=0, pg=None):
 	summary_prompt = f"{texts[0]}\n\nDescribe the document from which the fragment is extracted. Omit any details.\n\n" # TODO: move to prompts.py
 	summary = ai.complete(summary_prompt)
 	out = {}
-	out['pages']   = pages
 	out['texts']   = texts
+	out['pages']   = pages
 	out['vectors'] = vectors
 	out['summary'] = summary['text']
 	return out
@@ -65,14 +65,23 @@ def text_to_fragments(text, size, page_offset):
 	if size and len(text)>size:
 		out = []
 		pos = 0
+		page = 1
+		p_off = page_offset.copy()[1:]
 		eos = find_eos(text)
 		if len(text) not in eos:
 			eos += [len(text)]
 		for i in range(len(eos)):
 			if eos[i]-pos>size:
-				out += [text[pos:eos[i]]]
+				text_fragment = f'PAGE({page}):\n'+text[pos:eos[i]]
+				out += [text_fragment]
 				pos = eos[i]
-		out += [text[pos:eos[i]]]
+				if eos[i]>p_off[0]:
+					page += 1
+					del p_off[0]
+		# ugly: last iter
+		text_fragment = f'PAGE({page}):\n'+text[pos:eos[i]]
+		out += [text_fragment]
+		#
 		out = [x for x in out if x]
 		return out
 	else:
@@ -155,5 +164,5 @@ def hypotetical_answer(text, index, hyde_prompt=None, temperature=0.0):
 
 
 if __name__=="__main__":
-	print(text_to_fragments("to jest. test tego. programu", size=10))
+	print(text_to_fragments("to jest. test tego. programu", size=3, page_offset=[0,5,10,15,20]))
 	
