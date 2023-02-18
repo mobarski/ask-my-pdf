@@ -12,9 +12,7 @@ Thank you for your interest in my application. Please be aware that this is only
 
 
 
-🌐 The app can be accessed on the Streamlit Community Cloud at https://ask-my-pdf.streamlit.app/.
-
-🔑 However, to use the app, you will need your own [OpenAI's API key](https://platform.openai.com/account/api-keys).
+🌐 The app can be accessed on the Streamlit Community Cloud at https://ask-my-pdf.streamlit.app/. 🔑 However, to use the app, you will need your own [OpenAI's API key](https://platform.openai.com/account/api-keys).
 
 
 
