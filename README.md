@@ -8,15 +8,17 @@ Thank you for your interest in my application. Please be aware that this is only
 
 ### Ask my PDF - Question answering system built on top of GPT3
 
-The main use case is answering questions about boardgame rules based on the instruction manual. The app can be used for many other tasks but this particular one is a) very close to me as I'm a big fan of boardgames, b) rather harmless in the case of LLM's halucinations.  
+🎲 The primary use case for this app is to assist users in answering  questions about board game rules based on the instruction manual. While  the app can be used for other tasks, helping users with board game rules is particularly meaningful to me since I'm an avid fan of board games  myself. Additionally, this use case is relatively harmless, even in  cases where the model may experience hallucinations.
 
 
 
-🌐 The app can be accessed in the Streamlit Community Cloud (https://ask-my-pdf.streamlit.app/) but it requires your own [OpenAI's API key](https://platform.openai.com/account/api-keys).
+🌐 The app can be accessed on the Streamlit Community Cloud at https://ask-my-pdf.streamlit.app/.
+
+🔑 However, to use the app, you will need your own [OpenAI's API key](https://platform.openai.com/account/api-keys).
 
 
 
-📄 The system implements the following papers:
+📄 The app implements the following academic papers:
 
 - [In-Context Retrieval-Augmented Language Models](https://arxiv.org/abs/2302.00083) aka **RALM**
 
