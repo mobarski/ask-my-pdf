@@ -43,9 +43,10 @@ def ui_info():
 	ui_spacer(1)
 	st.markdown("""
 		Thank you for your interest in my application.
-		Please be aware that it is only a Proof of Concept system
+		Please be aware that this is only a Proof of Concept system
 		and may contain bugs or unfinished features.
-		If you like this app you can ❤️ [follow me](https://twitter.com/KerbalFPV) on Twitter for news and updates.
+		If you like this app you can ❤️ [follow me](https://twitter.com/KerbalFPV)
+		on Twitter for news and updates.
 		""")
 	ui_spacer(1)
 	st.markdown('Source code can be found [here](https://github.com/mobarski/ask-my-pdf).')
@@ -75,7 +76,7 @@ def ui_show_debug():
 	st.checkbox('show debug section', key='show_debug')
 
 def ui_fix_text():
-	st.checkbox('fix common text errors', value=True, key='fix_text')
+	st.checkbox('fix common PDF problems', value=True, key='fix_text')
 
 def ui_temperature():
 	#st.slider('temperature', 0.0, 1.0, 0.0, 0.1, key='temperature', format='%0.1f')
@@ -163,11 +164,11 @@ with st.sidebar:
 		b_clear()
 		ui_fragments()
 		ui_fix_text()
+		ui_hyde()
+		ui_hyde_summary()
 		ui_temperature()
 		ui_task_template()
 		ui_task()
-		ui_hyde()
-		ui_hyde_summary()
 		ui_hyde_prompt()
 
 ui_api_key()
