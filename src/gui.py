@@ -1,4 +1,4 @@
-__version__ = "0.3.5.2"
+__version__ = "0.3.6"
 app_name = "Ask my PDF"
 
 from prompts import TASK_PROMPT
@@ -57,20 +57,21 @@ def ui_api_key():
 		model.use_key(ss['api_key'])
 	st.text_input('OpenAI API key', type='password', key='api_key', on_change=on_change, label_visibility="collapsed")
 
+def index_pdf_file():
+	if ss['pdf_file']:
+		index = model.index_file(ss['pdf_file'], fix_text=ss['fix_text'], frag_size=ss['frag_size'], pg=ss['pg_index'])
+		ss['index'] = index
+		ss['debug']['n_pages'] = len(index['pages'])
+		ss['debug']['n_texts'] = len(index['texts'])
+		ss['debug']['pages'] = index['pages']
+		ss['debug']['texts'] = index['texts']
+		ss['debug']['summary'] = index['summary']
+
 def ui_pdf_file():
 	st.write('## 2. Upload your PDF file')
-	pg = st.progress(0)
-	def on_change():
-		if ss['pdf_file']:
-			index = model.index_file(ss['pdf_file'], fix_text=ss['fix_text'], frag_size=ss['frag_size'], pg=pg)
-			ss['index'] = index
-			ss['debug']['n_pages'] = len(index['pages'])
-			ss['debug']['n_texts'] = len(index['texts'])
-			ss['debug']['pages'] = index['pages']
-			ss['debug']['texts'] = index['texts']
-			ss['debug']['summary'] = index['summary']
+	ss['pg_index'] = st.progress(0)
 	disabled = not ss.get('api_key')
-	uploaded_file = st.file_uploader('pdf file', type='pdf', key='pdf_file', disabled=disabled, on_change=on_change, label_visibility="collapsed")
+	uploaded_file = st.file_uploader('pdf file', type='pdf', key='pdf_file', disabled=disabled, on_change=index_pdf_file, label_visibility="collapsed")
 
 def ui_show_debug():
 	st.checkbox('show debug section', key='show_debug')
@@ -148,6 +149,10 @@ def b_clear():
 	if st.button('clear output'):
 		ss['output'] = ''
 
+def b_reindex():
+	if st.button('reindex'):
+		index_pdf_file()
+
 def output_add(q,a):
 	if 'output' not in ss: ss['output'] = ''
 	new = f'#### {q}\n{a}\n\n'.replace('$',r'\$')
@@ -163,6 +168,7 @@ with st.sidebar:
 		ui_show_debug()
 		b_clear()
 		ui_fragments()
+		b_reindex()
 		ui_fix_text()
 		ui_hyde()
 		ui_hyde_summary()
