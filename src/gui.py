@@ -1,9 +1,6 @@
 __version__ = "0.3.6"
 app_name = "Ask my PDF"
 
-from prompts import TASK_PROMPT
-from prompts import DEFAULT_HYDE
-from prompts import SUMMARY_PROMPT
 
 # BOILERPLATE
 
@@ -19,6 +16,7 @@ header3 = st.empty() # for errors / messages
 
 # IMPORTS
 
+import prompts
 import model
 
 # COMPONENTS
@@ -84,25 +82,25 @@ def ui_temperature():
 	ss['temperature'] = 0.0
 
 def ui_fragments():
-	st.number_input('fragment size', 0,2000,600, step=200, key='frag_size')
+	st.number_input('fragment size', 0,2000,200, step=200, key='frag_size')
 	st.number_input('max fragments', 1, 10, 4, key='max_frags')
 
 
 def ui_hyde():
-	st.checkbox('use HyDE', key='use_hyde')
+	st.checkbox('use HyDE', value=True, key='use_hyde')
 
 def ui_hyde_summary():
-	st.checkbox('use summary in HyDE', key='use_hyde_summary')
+	st.checkbox('use summary in HyDE', value=True, key='use_hyde_summary')
 
 def ui_task_template():
-	st.selectbox('task prompt template', TASK_PROMPT.keys(), key='task_name')
+	st.selectbox('task prompt template', prompts.TASK.keys(), key='task_name')
 
 def ui_task():
 	x = ss['task_name']
-	st.text_area('task prompt', TASK_PROMPT[x], key='task')
+	st.text_area('task prompt', prompts.TASK[x], key='task')
 
 def ui_hyde_prompt():
-	st.text_area('HyDE prompt', DEFAULT_HYDE, key='hyde_prompt')
+	st.text_area('HyDE prompt', prompts.HYDE, key='hyde_prompt')
 
 def ui_question():
 	st.write('## 3. Ask questions')
@@ -153,6 +151,11 @@ def b_reindex():
 	if st.button('reindex'):
 		index_pdf_file()
 
+def b_reload():
+	if st.button('reload prompts'):
+		import importlib
+		importlib.reload(prompts)
+
 def output_add(q,a):
 	if 'output' not in ss: ss['output'] = ''
 	new = f'#### {q}\n{a}\n\n'.replace('$',r'\$')
@@ -173,6 +176,7 @@ with st.sidebar:
 		ui_hyde()
 		ui_hyde_summary()
 		ui_temperature()
+		b_reload()
 		ui_task_template()
 		ui_task()
 		ui_hyde_prompt()

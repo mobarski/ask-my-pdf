@@ -2,7 +2,15 @@
 
 # TODO: Ignore OCR problems in the text below.
 
-TASK_PROMPT = {
+TASK = {
+	'v6': (
+			"Answer the question truthfully based on the text below. "
+			"Include verbatim quote and a comment where to find it in the text (page number). "
+			#"After the quote write a step by step explanation in a new paragraph. "
+			"After the quote write a step by step explanation. "
+			"Use bullet points. "
+			#"After that try to rephrase the original question so it might give better results. " 
+		),
 	'v5': (
 			"Answer the question truthfully based on the text below. "
 			"Include at least one verbatim quote (marked with quotation marks) and a comment where to find it in the text (ie name of the section and page number). "
@@ -26,11 +34,10 @@ TASK_PROMPT = {
 		# "If different fragments refer to different entities with the same name, write separate answer for each entity.",
 }
 
-DEFAULT_HYDE = "Write an example answer to the following question. Don't write generic answer, just assume everything that is not known."
+HYDE = "Write an example answer to the following question. Don't write generic answer, just assume everything that is not known."
 
 # TODO
-SUMMARY_PROMPT = {
+SUMMARY = {
 	'v2':'Describe the document from which the fragment is extracted. Omit any details.',
 	'v1':'Describe the document from which the fragment is extracted. Do not describe the fragment, focus on figuring out what kind document it is.',
 }
-

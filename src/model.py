@@ -42,6 +42,7 @@ def index_file(f, fix_text=False, frag_size=0, pg=None):
 	summary_prompt = f"{texts[0]}\n\nDescribe the document from which the fragment is extracted. Omit any details.\n\n" # TODO: move to prompts.py
 	summary = ai.complete(summary_prompt)
 	out = {}
+	out['size']    = len(texts)
 	out['texts']   = texts
 	out['pages']   = pages
 	out['vectors'] = vectors
@@ -115,18 +116,29 @@ def query(text, index, task=None, temperature=0.0, max_frags=1, hyde=False, hyde
 	
 	# BUILD PROMPT
 	
+	# select fragments
+	N_BEFORE = 1 # TODO: param
+	N_AFTER =  1 # TODO: param
+	selected = {} # text id -> rank
+	for rank,id in enumerate(id_list):
+		for x in range(id-N_BEFORE, id+1+N_AFTER):
+			if x not in selected and x>=0 and x<index['size']:
+				selected[x] = rank
+	selected2 = [(id,rank) for id,rank in selected.items()]
+	selected2.sort(key=lambda x:(x[1],x[0]))
+	
 	# build context
+	SEPARATOR = '\n---\n'
 	context = ''
-	context += text_list[0]
-	context_len = ai.get_token_count(context)
-	pages_cnt = 1
-	for i in range(1,min(max_frags,len(id_list))):
-		page_len = ai.get_token_count(text_list[i])
-		if context_len+page_len <= 3000: # TODO: remove hardcode
-			context += '\n---\n'+text_list[i]
-			context_len += page_len
-			pages_cnt +=1
-	out['context_pages_cnt'] = pages_cnt
+	context_len = 0
+	frag_list = []
+	for id,rank in selected2:
+		frag = index['texts'][id]
+		frag_len = ai.get_token_count(frag)
+		if context_len+frag_len <= 3000: # TODO: remove hardcode
+			context += SEPARATOR + frag # add separator and text fragment
+			frag_list += [frag]
+			context_len = ai.get_token_count(context)
 	out['context_len'] = context_len
 	prompt = f"""
 		{task or 'Task: Answer question based on context.'}
@@ -146,6 +158,9 @@ def query(text, index, task=None, temperature=0.0, max_frags=1, hyde=False, hyde
 	# OUTPUT
 	out['id_list'] = id_list
 	out['dist_list'] = dist_list
+	out['selected'] = selected
+	out['selected2'] = selected2
+	out['frag`_list'] = frag_list
 	#out['query.vector'] = resp['vector']
 	out['usage'] = usage
 	out['prompt'] = prompt
