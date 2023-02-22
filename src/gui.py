@@ -206,7 +206,6 @@ def output_add(q,a):
 	if 'output' not in ss: ss['output'] = ''
 	new = f'#### {q}\n{a}\n\n'.replace('$',r'\$')
 	ss['output'] = new + ss['output']
-	print('A:',a,flush=True) # XXX
 
 # LAYOUT
 

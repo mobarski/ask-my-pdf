@@ -165,13 +165,16 @@ class S3Storage(Storage):
 		self.bucket = bucket
 		self.prefix = prefix
 	
+	def get_key(self, name):
+		return f'{self.prefix}/{self.folder}/{name}'
+	
 	def _put(self, name, data):
-		key = f'{self.prefix}/{self.folder}/{name}'
+		key = self.get_key(name)
 		f = io.BytesIO(data)
 		self.s3.upload_fileobj(f, self.bucket, key)
 	
 	def _get(self, name):
-		key = f'{self.prefix}/{self.folder}/{name}'
+		key = self.get_key(name)
 		f = io.BytesIO()
 		self.s3.download_fileobj(self.bucket, key, f)
 		f.seek(0)
@@ -180,7 +183,7 @@ class S3Storage(Storage):
 	def _list(self):
 		resp = self.s3.list_objects(
 				Bucket=self.bucket,
-				Prefix=f'{self.prefix}/{self.folder}/'
+				Prefix=self.get_key('')
 			)
 		contents = resp.get('Contents',[])
 		contents.sort(key=lambda x:x['LastModified'], reverse=True)
@@ -191,5 +194,5 @@ class S3Storage(Storage):
 	def _delete(self, name):
 		self.s3.delete_object(
 				Bucket=self.bucket,
-				Key=f'{self.prefix}/{self.folder}/{name}'
+				Key=self.get_key(name)
 			)
