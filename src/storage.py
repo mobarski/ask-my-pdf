@@ -184,7 +184,7 @@ class S3Storage(Storage):
 			)
 		contents = resp.get('Contents',[])
 		contents.sort(key=lambda x:x['LastModified'], reverse=True)
-		keys = [x['Key'] for x in resp['Contents']]
+		keys = [x['Key'] for x in contents]
 		names = [x.split('/')[-1] for x in keys]
 		return names
 	
