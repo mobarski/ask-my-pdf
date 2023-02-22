@@ -1,4 +1,4 @@
-"Storage adapter"
+"Storage adapter - one folder for each user / api_key"
 
 # pip install pycryptodome
 # REF: https://www.pycryptodome.org/src/cipher/aes
@@ -15,7 +15,7 @@ import io
 SALT = unhexlify(os.getenv('STORAGE_SALT','00'))
 
 class Storage:
-	"Encrypted object storage (base class) - one 'folder' for each secret_key"
+	"Encrypted object storage (base class)"
 	
 	def __init__(self, secret_key):
 		k = secret_key.encode()
@@ -182,6 +182,8 @@ class S3Storage(Storage):
 				Bucket=self.bucket,
 				Prefix=f'{self.prefix}/{self.folder}/'
 			)
+		contents = resp.get('Contents',[])
+		contents.sort(key=lambda x:x['LastModified'], reverse=True)
 		keys = [x['Key'] for x in resp['Contents']]
 		names = [x.split('/')[-1] for x in keys]
 		return names
