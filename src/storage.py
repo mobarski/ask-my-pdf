@@ -12,6 +12,10 @@ import zlib
 import os
 import io
 
+# pip install boto3
+import boto3
+import botocore
+
 SALT = unhexlify(os.getenv('STORAGE_SALT','00'))
 
 class Storage:
@@ -142,10 +146,6 @@ class S3Storage(Storage):
 	"S3 based encrypted storage"
 	
 	def __init__(self, secret_key):
-		# pip install boto
-		import boto3
-		import botocore
-		#
 		prefix = os.getenv('S3_PREFIX','x1')
 		region = os.getenv('S3_REGION','sfo3')
 		bucket = os.getenv('S3_BUCKET','ask-my-pdf')
