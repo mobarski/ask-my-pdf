@@ -67,11 +67,15 @@ def index_pdf_file():
 
 def debug_index():
 	index = ss['index']
-	ss['debug']['n_pages'] = len(index['pages'])
-	ss['debug']['n_texts'] = len(index['texts'])
-	ss['debug']['pages'] = index['pages']
-	ss['debug']['texts'] = index['texts']
-	ss['debug']['summary'] = index['summary']
+	d = {}
+	d['hash'] = index['hash']
+	d['frag_size'] = index['frag_size']
+	d['n_pages'] = len(index['pages'])
+	d['n_texts'] = len(index['texts'])
+	d['summary'] = index['summary']
+	d['pages'] = index['pages']
+	d['texts'] = index['texts']
+	ss['debug']['index'] = d
 
 def ui_pdf_file():
 	st.write('## 2. Upload or select your PDF file')
@@ -109,8 +113,12 @@ def ui_temperature():
 	ss['temperature'] = 0.0
 
 def ui_fragments():
-	st.number_input('fragment size', 0,2000,200, step=200, key='frag_size')
+	#st.number_input('fragment size', 0,2000,200, step=100, key='frag_size')
+	st.selectbox('fragment size (characters)', [0,200,300,400,500,600,700,800,900,1000], index=3, key='frag_size')
+	b_reindex()
 	st.number_input('max fragments', 1, 10, 4, key='max_frags')
+	st.number_input('fragments before', 0, 3, 1, key='n_frag_before') # TODO: pass to model
+	st.number_input('fragments after',  0, 3, 1, key='n_frag_after')  # TODO: pass to model
 
 
 def ui_hyde():
@@ -161,10 +169,22 @@ def b_ask():
 			hyde_prompt += f" Context: {summary}\n\n"
 		task = ss.get('task')
 		max_frags = ss.get('max_frags',1)
+		n_before = ss.get('n_frag_before',0)
+		n_after  = ss.get('n_frag_after',0)
 		index = ss.get('index',{})
 		with st.spinner('preparing answer'):
-			resp = model.query(text, index, task=task, temperature=temperature, hyde=hyde, hyde_prompt=hyde_prompt, max_frags=max_frags, limit=max_frags+2)
+			resp = model.query(text, index,
+					task=task,
+					temperature=temperature,
+					hyde=hyde,
+					hyde_prompt=hyde_prompt,
+					max_frags=max_frags,
+					limit=max_frags+2,
+					n_before=n_before,
+					n_after=n_after,
+				)
 		ss['debug']['model.query.resp'] = resp
+		ss['debug']['resp.usage'] = resp.get('usage',{})
 		
 		q = text.strip()
 		a = resp['text'].strip()
@@ -199,7 +219,6 @@ def b_delete():
 	if st.button('delete from ask-my-pdf', disabled=not db or not name):
 		with st.spinner('deleting from ask-my-pdf'):
 			db.delete(name)
-		ss['selected_file']=None
 		st.experimental_rerun()
 
 def output_add(q,a):
@@ -216,7 +235,6 @@ with st.sidebar:
 		ui_show_debug()
 		b_clear()
 		ui_fragments()
-		b_reindex()
 		ui_fix_text()
 		ui_hyde()
 		ui_hyde_summary()

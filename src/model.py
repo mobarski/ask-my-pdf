@@ -1,7 +1,10 @@
 from sklearn.metrics.pairwise import cosine_distances
+import hashlib
+import re
+import io
+
 import pdf
 import ai
-import re
 
 def use_key(api_key):
 	ai.use_key(api_key)
@@ -33,6 +36,12 @@ def get_vectors(text_list, pg=None):
 
 def index_file(f, fix_text=False, frag_size=0, pg=None):
 	"return vector index (dictionary) for a given PDF file"
+	# calc md5
+	h = hashlib.md5()
+	h.update(f.read())
+	md5 = h.hexdigest()
+	f.seek(0)
+	#
 	pages = pdf.pdf_to_pages(f)
 	if fix_text:
 		for i in range(len(pages)):
@@ -42,11 +51,13 @@ def index_file(f, fix_text=False, frag_size=0, pg=None):
 	summary_prompt = f"{texts[0]}\n\nDescribe the document from which the fragment is extracted. Omit any details.\n\n" # TODO: move to prompts.py
 	summary = ai.complete(summary_prompt)
 	out = {}
+	out['frag_size'] = frag_size
 	out['size']    = len(texts)
 	out['texts']   = texts
 	out['pages']   = pages
 	out['vectors'] = vectors
 	out['summary'] = summary['text']
+	out['hash']    = f'md5:{md5}'
 	return out
 
 def split_pages_into_fragments(pages, frag_size):
@@ -99,7 +110,7 @@ def fix_text_problems(text, pg=None):
 	text = re.sub('\s+[-]\s+','',text) # word continuation in the next line
 	return text
 
-def query(text, index, task=None, temperature=0.0, max_frags=1, hyde=False, hyde_prompt=None, limit=None):
+def query(text, index, task=None, temperature=0.0, max_frags=1, hyde=False, hyde_prompt=None, limit=None, n_before=1, n_after=1):
 	"get dictionary with the answer for the given question (text)."
 	out = {}
 	
@@ -121,7 +132,7 @@ def query(text, index, task=None, temperature=0.0, max_frags=1, hyde=False, hyde
 	N_AFTER =  1 # TODO: param
 	selected = {} # text id -> rank
 	for rank,id in enumerate(id_list):
-		for x in range(id-N_BEFORE, id+1+N_AFTER):
+		for x in range(id-n_before, id+1+n_after):
 			if x not in selected and x>=0 and x<index['size']:
 				selected[x] = rank
 	selected2 = [(id,rank) for id,rank in selected.items()]
@@ -160,10 +171,11 @@ def query(text, index, task=None, temperature=0.0, max_frags=1, hyde=False, hyde
 	out['dist_list'] = dist_list
 	out['selected'] = selected
 	out['selected2'] = selected2
-	out['frag`_list'] = frag_list
+	out['frag_list'] = frag_list
 	#out['query.vector'] = resp['vector']
 	out['usage'] = usage
 	out['prompt'] = prompt
+	# CORE
 	out['text'] = answer
 	return out
 
