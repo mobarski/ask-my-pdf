@@ -3,5 +3,7 @@ PyPDF2==2.12.1
 scikit-learn
 numpy
 tiktoken
+pycryptodome
+boto3
 
 #tomli
