@@ -4,6 +4,6 @@ scikit-learn
 numpy
 tiktoken
 pycryptodome
-boto
+boto3
 
 #tomli
