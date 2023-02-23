@@ -1,4 +1,4 @@
-__version__ = "0.4.1.1"
+__version__ = "0.4.1.3"
 app_name = "Ask my PDF"
 
 
@@ -101,6 +101,8 @@ def ui_pdf_file():
 				ss['filename'] = name # XXX
 				ss['index'] = index
 				debug_index()
+			else:
+				ss['index'] = {}
 		st.selectbox('select file', filenames, on_change=on_change, key='selected_file', label_visibility="collapsed")
 		b_delete()
 		ss['spin_select_file'] = st.empty()
@@ -161,7 +163,7 @@ def ui_debug():
 
 
 def b_ask():
-	disabled = not ss.get('api_key')
+	disabled = not ss.get('api_key') or not ss.get('index')
 	if st.button('get answer', disabled=disabled, type='primary'):
 		text = ss.get('question','')
 		temperature = ss.get('temperature', 0.0)
