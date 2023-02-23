@@ -1,4 +1,4 @@
-__version__ = "0.4.1"
+__version__ = "0.4.1.1"
 app_name = "Ask my PDF"
 
 
@@ -57,6 +57,8 @@ def ui_api_key():
 		model.use_key(api_key)
 		if 'data_dict' not in ss: ss['data_dict'] = {} # used only with DictStorage
 		ss['storage'] = storage.get_storage(api_key, data_dict=ss['data_dict'])
+		ss['debug']['storage.folder'] = ss['storage'].folder
+		ss['debug']['storage.class'] = ss['storage'].__class__.__name__
 	st.text_input('OpenAI API key', type='password', key='api_key', on_change=on_change, label_visibility="collapsed")
 
 def index_pdf_file():
