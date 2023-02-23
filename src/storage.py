@@ -111,18 +111,21 @@ class DictStorage(Storage):
 		return self.data[self.folder][name]
 	
 	def _list(self):
-		return list(self.data.keys())
+		# TODO: sort by modification time (reverse=True)
+		return list(self.data.get(self.folder,{}).keys())
 	
 	def _delete(self, name):
-		del self.data[name]
+		del self.data[self.folder][name]
 
 
 class LocalStorage(Storage):
 	"Local filesystem based storage"
 	
-	def __init__(self, secret_key, root):
+	def __init__(self, secret_key, path):
+		if not path:
+			raise Exception('No storage path in environment variables!')
 		super().__init__(secret_key)
-		self.path = os.path.join(root, self.folder)
+		self.path = os.path.join(path, self.folder)
 		if not os.path.exists(self.path):
 			os.makedirs(self.path)
 	
@@ -136,6 +139,7 @@ class LocalStorage(Storage):
 		return data
 	
 	def _list(self):
+		# TODO: sort by modification time (reverse=True)
 		return os.listdir(self.path)
 	
 	def _delete(self, name):
@@ -152,6 +156,9 @@ class S3Storage(Storage):
 		secret = os.getenv('S3_SECRET','')
 		key    = os.getenv('S3_KEY','')
 		url    = os.getenv('S3_URL',f'https://{region}.digitaloceanspaces.com')
+		#
+		if not key or not url:
+			raise Exception("No S3 credentials in environment variables!")
 		#
 		super().__init__(secret_key)
 		self.session = boto3.session.Session()
@@ -196,3 +203,15 @@ class S3Storage(Storage):
 				Bucket=self.bucket,
 				Key=self.get_key(name)
 			)
+
+def get_storage(api_key, data_dict):
+	"get storage adapter configured in environment variables"
+	mode = os.getenv('STORAGE_MODE','').upper()
+	path = os.getenv('STORAGE_PATH','')
+	if mode=='S3':
+		storage = S3Storage(api_key)
+	elif mode=='LOCAL':
+		storage = LocalStorage(api_key, path)
+	else:
+		storage = DictStorage(api_key, data_dict)
+	return storage

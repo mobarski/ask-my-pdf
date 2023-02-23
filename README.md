@@ -38,3 +38,31 @@ Thank you for your interest in my application. Please be aware that this is only
 
 ![RALM + HyDE + context](docs/ralm_hyde_wc.jpg)
 
+
+
+### Environment variables used for configuration
+
+General configuration:
+
+- **STORAGE_SALT** - cryptograpic salt used when deriving user/folder name and encryption key from API key, hexadecimal notation, 2-16 characters
+
+- **STORAGE_MODE** - index storage mode,  S3, LOCAL, DICT (default)
+
+Local filesystem storage configuration:
+
+- **STORAGE_PATH** - directory path for index storage
+
+S3 based storage configuration:
+
+- **S3_REGION** - region code
+
+- **S3_BUCKET** - bucket name
+
+- **S3_SECRET** - secret key
+
+- **S3_KEY** - access key
+
+- **S3_URL** - URL
+
+- **S3_PREFIX** - object name prefix
+
