@@ -1,4 +1,4 @@
-__version__ = "0.4.1.2"
+__version__ = "0.4.1.3"
 app_name = "Ask my PDF"
 
 
@@ -101,6 +101,8 @@ def ui_pdf_file():
 				ss['filename'] = name # XXX
 				ss['index'] = index
 				debug_index()
+			else:
+				ss['index'] = {}
 		st.selectbox('select file', filenames, on_change=on_change, key='selected_file', label_visibility="collapsed")
 		b_delete()
 		ss['spin_select_file'] = st.empty()
