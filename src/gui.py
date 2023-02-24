@@ -1,4 +1,4 @@
-__version__ = "0.4.2"
+__version__ = "0.4.3"
 app_name = "Ask my PDF"
 
 
@@ -69,7 +69,8 @@ def index_pdf_file():
 		ss['filename'] = ss['pdf_file'].name
 		index = model.index_file(ss['pdf_file'], fix_text=ss['fix_text'], frag_size=ss['frag_size'], pg=ss['pg_index'])
 		usage = index['usage']
-		ss['stats'].incr('usage:v1:{date}:{user}', {f'index:{k}':v for k,v in usage.items()})
+		ss['stats'].incr('usage:v1:{date}:{user}',     {'index:'+k:v for k,v in usage.items()})
+		ss['stats'].incr('hourly:v1:{date}', {'index:'+k+':{hour}':v for k,v in usage.items()})
 		ss['debug']['stats'] = ss['stats'].get('usage:v1:{date}:{user}')
 		ss['index'] = index
 		debug_index()
@@ -196,7 +197,8 @@ def b_ask():
 				)
 		usage = resp.get('usage',{})
 		usage['cnt'] = 1
-		ss['stats'].incr('usage:v1:{date}:{user}', {f'ask:{k}':v for k,v in usage.items()})
+		ss['stats'].incr('usage:v1:{date}:{user}',     {'ask:'+k:v for k,v in usage.items()})
+		ss['stats'].incr('hourly:v1:{date}', {'ask:'+k+':{hour}':v for k,v in usage.items()})
 		ss['debug']['stats'] = ss['stats'].get('usage:v1:{date}:{user}')
 		ss['debug']['model.query.resp'] = resp
 		ss['debug']['resp.usage'] = usage

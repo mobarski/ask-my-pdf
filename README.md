@@ -46,7 +46,9 @@ General configuration:
 
 - **STORAGE_SALT** - cryptograpic salt used when deriving user/folder name and encryption key from API key, hexadecimal notation, 2-16 characters
 
-- **STORAGE_MODE** - index storage mode,  S3, LOCAL, DICT (default)
+- **STORAGE_MODE** - index storage mode:  S3, LOCAL, DICT (default)
+
+- **STATS_MODE** - usage stats storage mode: REDIS, DICT (default)
 
 Local filesystem storage configuration:
 
@@ -65,4 +67,9 @@ S3 based storage configuration:
 - **S3_URL** - URL
 
 - **S3_PREFIX** - object name prefix
+
+
+Redis configuration (for persistent usage statistics):
+
+- **REDIS_URL** - Redis DB URL (redis[s]://:password@host:port/[db-id])
 
