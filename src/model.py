@@ -1,4 +1,6 @@
 from sklearn.metrics.pairwise import cosine_distances
+
+from collections import Counter
 import hashlib
 import re
 import io
@@ -26,13 +28,17 @@ def query_by_vector(vector, index, limit=None):
 def get_vectors(text_list, pg=None):
 	"transform texts into embedding vectors"
 	vectors = []
+	usage = Counter()
 	for i,text in enumerate(text_list):
 		resp = ai.embedding(text)
 		v = resp['vector']
+		u = resp['usage']
+		u['cnt'] = 1
+		usage.update(u)
 		vectors += [v]
 		if pg:
 			pg.progress((i+1)/len(text_list))
-	return vectors
+	return {'vectors':vectors, 'usage':dict(usage)}
 
 def index_file(f, fix_text=False, frag_size=0, pg=None):
 	"return vector index (dictionary) for a given PDF file"
@@ -47,7 +53,8 @@ def index_file(f, fix_text=False, frag_size=0, pg=None):
 		for i in range(len(pages)):
 			pages[i] = fix_text_problems(pages[i], pg)
 	texts = split_pages_into_fragments(pages, frag_size)
-	vectors = get_vectors(texts, pg)
+	resp = get_vectors(texts, pg)
+	vectors = resp['vectors']
 	summary_prompt = f"{texts[0]}\n\nDescribe the document from which the fragment is extracted. Omit any details.\n\n" # TODO: move to prompts.py
 	summary = ai.complete(summary_prompt)
 	out = {}
@@ -58,6 +65,7 @@ def index_file(f, fix_text=False, frag_size=0, pg=None):
 	out['vectors'] = vectors
 	out['summary'] = summary['text']
 	out['hash']    = f'md5:{md5}'
+	out['usage']   = resp['usage']    
 	return out
 
 def split_pages_into_fragments(pages, frag_size):

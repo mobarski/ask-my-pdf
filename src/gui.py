@@ -1,4 +1,4 @@
-__version__ = "0.4.1.3"
+__version__ = "0.4.2"
 app_name = "Ask my PDF"
 
 
@@ -19,6 +19,7 @@ header3 = st.empty() # for errors / messages
 import prompts
 import model
 import storage
+import stats
 
 # COMPONENTS
 
@@ -59,12 +60,17 @@ def ui_api_key():
 		ss['storage'] = storage.get_storage(api_key, data_dict=ss['data_dict'])
 		ss['debug']['storage.folder'] = ss['storage'].folder
 		ss['debug']['storage.class'] = ss['storage'].__class__.__name__
+		ss['user'] = ss['storage'].folder # TODO: refactor user 'calculation' from get_storage
+		ss['stats'] = stats.get_stats(ss['user'])
 	st.text_input('OpenAI API key', type='password', key='api_key', on_change=on_change, label_visibility="collapsed")
 
 def index_pdf_file():
 	if ss['pdf_file']:
 		ss['filename'] = ss['pdf_file'].name
 		index = model.index_file(ss['pdf_file'], fix_text=ss['fix_text'], frag_size=ss['frag_size'], pg=ss['pg_index'])
+		usage = index['usage']
+		ss['stats'].incr('usage:v1:{date}:{user}', {f'index:{k}':v for k,v in usage.items()})
+		ss['debug']['stats'] = ss['stats'].get('usage:v1:{date}:{user}')
 		ss['index'] = index
 		debug_index()
 
@@ -188,8 +194,12 @@ def b_ask():
 					n_before=n_before,
 					n_after=n_after,
 				)
+		usage = resp.get('usage',{})
+		usage['cnt'] = 1
+		ss['stats'].incr('usage:v1:{date}:{user}', {f'ask:{k}':v for k,v in usage.items()})
+		ss['debug']['stats'] = ss['stats'].get('usage:v1:{date}:{user}')
 		ss['debug']['model.query.resp'] = resp
-		ss['debug']['resp.usage'] = resp.get('usage',{})
+		ss['debug']['resp.usage'] = usage
 		
 		q = text.strip()
 		a = resp['text'].strip()
