@@ -24,11 +24,12 @@ class DictStats(Stats):
 		self.data = data_dict
 	
 	def incr(self, key, kv_dict):
-		key = self.render(key)
 		data = self.data
+		key = self.render(key)
 		if key not in data:
 			data[key] = {}
 		for member,val in kv_dict.items():
+			member = self.render(member)
 			data[key][member] = data[key].get(member,0) + val
 	
 	def get(self, key):
@@ -49,6 +50,7 @@ class RedisStats(Stats):
 		key = self.render(key)
 		p = self.db.pipeline()
 		for member,val in kv_dict.items():
+			member = self.render(member)
 			self.db.zincrby(key, val, member)
 		p.execute()
 	
