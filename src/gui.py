@@ -1,4 +1,4 @@
-__version__ = "0.4.3"
+__version__ = "0.4.4"
 app_name = "Ask my PDF"
 
 
@@ -20,6 +20,7 @@ import prompts
 import model
 import storage
 import stats
+import feedback
 
 # COMPONENTS
 
@@ -57,11 +58,15 @@ def ui_api_key():
 		api_key = ss['api_key']
 		model.use_key(api_key)
 		if 'data_dict' not in ss: ss['data_dict'] = {} # used only with DictStorage
+		#
 		ss['storage'] = storage.get_storage(api_key, data_dict=ss['data_dict'])
-		ss['debug']['storage.folder'] = ss['storage'].folder
-		ss['debug']['storage.class'] = ss['storage'].__class__.__name__
 		ss['user'] = ss['storage'].folder # TODO: refactor user 'calculation' from get_storage
 		ss['stats'] = stats.get_stats(ss['user'])
+		ss['feedback'] = feedback.get_feedback_adapter(ss['user'])
+		ss['feedback_score'] = ss['feedback'].get_score()
+		#
+		ss['debug']['storage.folder'] = ss['storage'].folder
+		ss['debug']['storage.class'] = ss['storage'].__class__.__name__
 	st.text_input('OpenAI API key', type='password', key='api_key', on_change=on_change, label_visibility="collapsed")
 
 def index_pdf_file():
@@ -150,7 +155,7 @@ def ui_hyde_prompt():
 	st.text_area('HyDE prompt', prompts.HYDE, key='hyde_prompt')
 
 def ui_question():
-	st.write('## 3. Ask questions')
+	st.write('## 3. Ask questions'+f' to {ss["filename"]}' if ss.get('filename') else '')
 	disabled = not ss.get('api_key')
 	st.text_area('question', key='question', height=100, placeholder='Enter question here', help='', label_visibility="collapsed", disabled=disabled)
 
@@ -170,9 +175,23 @@ def ui_debug():
 
 
 def b_ask():
+	c1,c2,c3,c4,c5 = st.columns([2,1,1,2,2])
+	if c2.button('👍', use_container_width=True, disabled=not ss.get('output')):
+		ss['feedback'].send(+1, ss, details=ss['send_details'])
+		ss['feedback_score'] = ss['feedback'].get_score()
+	if c3.button('👎', use_container_width=True, disabled=not ss.get('output')):
+		ss['feedback'].send(-1, ss, details=ss['send_details'])
+		ss['feedback_score'] = ss['feedback'].get_score()
+	score = ss.get('feedback_score',0)
+	c5.write(f'feedback score: {score}')
+	c4.checkbox('send details', True, key='send_details',
+			help='allow question and the answer to be stored in the ask-my-pdf feedback database')
+	#c1,c2,c3 = st.columns([1,3,1])
+	#c2.radio('zzz',['👍',r'...',r'👎'],horizontal=True,label_visibility="collapsed")
+	#
 	disabled = not ss.get('api_key') or not ss.get('index')
-	if st.button('get answer', disabled=disabled, type='primary'):
-		text = ss.get('question','')
+	if c1.button('get answer', disabled=disabled, type='primary', use_container_width=True):
+		question = ss.get('question','')
 		temperature = ss.get('temperature', 0.0)
 		hyde = ss.get('use_hyde')
 		hyde_prompt = ss.get('hyde_prompt')
@@ -185,7 +204,7 @@ def b_ask():
 		n_after  = ss.get('n_frag_after',0)
 		index = ss.get('index',{})
 		with st.spinner('preparing answer'):
-			resp = model.query(text, index,
+			resp = model.query(question, index,
 					task=task,
 					temperature=temperature,
 					hyde=hyde,
@@ -203,9 +222,11 @@ def b_ask():
 		ss['debug']['model.query.resp'] = resp
 		ss['debug']['resp.usage'] = usage
 		
-		q = text.strip()
+		q = question.strip()
 		a = resp['text'].strip()
+		ss['answer'] = a
 		output_add(q,a)
+		st.experimental_rerun() # to enable the feedback buttons
 
 def b_clear():
 	if st.button('clear output'):
@@ -240,7 +261,9 @@ def b_delete():
 
 def output_add(q,a):
 	if 'output' not in ss: ss['output'] = ''
-	new = f'#### {q}\n{a}\n\n'.replace('$',r'\$')
+	q = q.replace('$',r'\$')
+	a = a.replace('$',r'\$')
+	new = f'#### {q}\n{a}\n\n'
 	ss['output'] = new + ss['output']
 
 # LAYOUT
