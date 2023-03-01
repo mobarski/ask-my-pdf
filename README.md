@@ -50,6 +50,8 @@ General configuration:
 
 - **STATS_MODE** - usage stats storage mode: REDIS, DICT (default)
 
+- **FEEDBACK_MODE** - user feedback storage mode: REDIS, DICT (default)
+
 Local filesystem storage configuration:
 
 - **STORAGE_PATH** - directory path for index storage
@@ -69,7 +71,7 @@ S3 based storage configuration:
 - **S3_PREFIX** - object name prefix
 
 
-Redis configuration (for persistent usage statistics):
+Redis configuration (for persistent usage statistics / user feedback):
 
-- **REDIS_URL** - Redis DB URL (redis[s]://:password@host:port/[db-id])
+- **REDIS_URL** - Redis DB URL (redis[s]://:password@host:port/[db])
 
