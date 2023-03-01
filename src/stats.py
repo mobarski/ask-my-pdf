@@ -14,7 +14,7 @@ class Stats:
 			user = self.user,
 		)
 		for k,v in variables.items():
-			key = key.replace('{'+k+'}',v)
+			key = key.replace('{'+k+'}',v) # TODO: other characters? now it's easy to confuse it with f-strings!
 		return key
 	
 
@@ -62,8 +62,8 @@ class RedisStats(Stats):
 
 
 def get_stats(user):
-	STATS_MODE = os.getenv('STATS_MODE','').upper()
-	if STATS_MODE=='REDIS':
+	MODE = os.getenv('STATS_MODE','').upper()
+	if MODE=='REDIS':
 		return RedisStats(user)
 	else:
 		data_dict = {} # TODO: passed to get_stats

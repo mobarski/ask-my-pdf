@@ -32,7 +32,8 @@ class Storage:
 		"get one object from the folder"
 		safe_name = self.encode(name)
 		data = self._get(safe_name)
-		return self.deserialize(data)
+		obj = self.deserialize(data)
+		return obj
 	
 	def put(self, name, obj):
 		"put the object into the folder"

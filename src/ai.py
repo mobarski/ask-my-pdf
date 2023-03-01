@@ -11,33 +11,61 @@ def get_token_count(text):
 	return len(tokens)
 
 
+# REF: https://platform.openai.com/docs/models
+def get_model_max_tokens(model):
+	model_max_tokens = {
+		'gpt-3.5-turbo':4096,
+		'text-davinci-003':4000,
+		'text-davinci-002':4000,
+		'text-davinci-001':4000,
+		'code-davinci-002':8000,
+	}
+	return model_max_tokens.get(model, 2048)
+
+def is_chat(model):
+	return model.startswith('gpt') # TODO
+
+
 import openai
 
 def use_key(api_key):
 	openai.api_key = api_key
 
-def complete(prompt, temperature=0.0):
+def complete(prompt, temperature=0.0, model=None):
+	model = model or 'text-davinci-003'
 	kwargs = dict(
-		model = 'text-davinci-003',
-		max_tokens = 4000 - get_token_count(prompt),
+		model = model,
+		max_tokens = get_model_max_tokens(model) - get_token_count(prompt),
 		temperature = temperature,
-		prompt = prompt,
 		n = 1,
 	)
-	resp = openai.Completion.create(**kwargs)
 	out = {}
-	out['text']  = resp['choices'][0]['text']
+	if is_chat(model):
+		kwargs['messages'] = [
+				{'role':'system', 'content':'output only in raw text'},
+				{'role':'user',   'content':prompt},
+			]
+		kwargs['max_tokens'] -= 30 # UGLY: workaround for not counting chat specific tokens
+		resp = openai.ChatCompletion.create(**kwargs) # API CALL
+		out['text'] = resp['choices'][0]['message']['content']
+	else:
+		kwargs['prompt'] = prompt
+		resp = openai.Completion.create(**kwargs) # API CALL
+		out['text']  = resp['choices'][0]['text']
 	out['usage'] = resp['usage']
+	out['model'] = model
 	return out
 
 
-def embedding(text):
+def embedding(text, model=None):
+	model = model or "text-embedding-ada-002"
 	resp = openai.Embedding.create(
 		input=text,
-		model="text-embedding-ada-002",
+		model=model,
 	)
 	out = {}
 	out['vector'] = list(resp['data'][0]['embedding'][:BUTCHER_EMBEDDINGS])
 	out['usage']  = dict(resp['usage'])
+	out['model'] = model
 	return out
 
