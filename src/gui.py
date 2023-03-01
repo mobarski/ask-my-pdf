@@ -22,7 +22,10 @@ import storage
 import stats
 import feedback
 
+from time import time as now
+
 # COMPONENTS
+
 
 def ui_spacer(n=2, line=False, next_n=0):
 	for _ in range(n):
@@ -72,11 +75,8 @@ def ui_api_key():
 def index_pdf_file():
 	if ss['pdf_file']:
 		ss['filename'] = ss['pdf_file'].name
-		index = model.index_file(ss['pdf_file'], fix_text=ss['fix_text'], frag_size=ss['frag_size'], pg=ss['pg_index'])
-		usage = index['usage']
-		ss['stats'].incr('usage:v1:{date}:{user}',     {'index:'+k:v for k,v in usage.items()})
-		ss['stats'].incr('hourly:v1:{date}', {'index:'+k+':{hour}':v for k,v in usage.items()})
-		ss['debug']['stats'] = ss['stats'].get('usage:v1:{date}:{user}')
+		index = model.index_file(ss['pdf_file'], fix_text=ss['fix_text'], frag_size=ss['frag_size'], pg=ss['pg_index'], stats=ss['stats'])
+		ss['debug']['stats'] = ss['stats'].get('usage:v2:{date}:{user}')
 		ss['index'] = index
 		debug_index()
 
@@ -90,6 +90,7 @@ def debug_index():
 	d['summary'] = index['summary']
 	d['pages'] = index['pages']
 	d['texts'] = index['texts']
+	d['time'] = index['time']
 	ss['debug']['index'] = d
 
 def ui_pdf_file():
@@ -109,7 +110,9 @@ def ui_pdf_file():
 			if name and ss.get('storage'):
 				with ss['spin_select_file']:
 					with st.spinner('loading index'):
+						t0 = now()
 						index = ss['storage'].get(name)
+						ss['debug']['storage_get_time'] = now()-t0
 				ss['filename'] = name # XXX
 				ss['index'] = index
 				debug_index()
@@ -137,6 +140,10 @@ def ui_fragments():
 	st.number_input('fragments before', 0, 3, 1, key='n_frag_before') # TODO: pass to model
 	st.number_input('fragments after',  0, 3, 1, key='n_frag_after')  # TODO: pass to model
 
+def ui_model():
+	models = ['gpt-3.5-turbo','text-davinci-003','text-curie-001']
+	st.selectbox('main model', models, key='model')
+	st.selectbox('embedding model', ['text-embedding-ada-002'], key='model_embed') # FOR FUTURE USE
 
 def ui_hyde():
 	st.checkbox('use HyDE', value=True, key='use_hyde')
@@ -213,14 +220,15 @@ def b_ask():
 					limit=max_frags+2,
 					n_before=n_before,
 					n_after=n_after,
+					stats=ss['stats'],
+					model=ss['model'],
 				)
 		usage = resp.get('usage',{})
 		usage['cnt'] = 1
-		ss['stats'].incr('usage:v1:{date}:{user}',     {'ask:'+k:v for k,v in usage.items()})
-		ss['stats'].incr('hourly:v1:{date}', {'ask:'+k+':{hour}':v for k,v in usage.items()})
-		ss['debug']['stats'] = ss['stats'].get('usage:v1:{date}:{user}')
+		ss['debug']['stats'] = ss['stats'].get('usage:v2:{date}:{user}')
 		ss['debug']['model.query.resp'] = resp
 		ss['debug']['resp.usage'] = usage
+		ss['debug']['model.vector_query_time'] = resp['vector_query_time']
 		
 		q = question.strip()
 		a = resp['text'].strip()
@@ -274,6 +282,7 @@ with st.sidebar:
 	with st.expander('advanced'):
 		ui_show_debug()
 		b_clear()
+		ui_model()
 		ui_fragments()
 		ui_fix_text()
 		ui_hyde()

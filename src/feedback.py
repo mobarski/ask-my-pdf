@@ -34,6 +34,8 @@ class RedisFeedback(Feedback):
 		data = {}
 		data['user'] = self.user
 		data['task-prompt-version'] = ctx.get('task_name')
+		data['model'] = ctx.get('model')
+		data['model-embeddings'] = ctx.get('model_embed')
 		data['task-prompt'] = ctx.get('task')
 		data['temperature'] = ctx.get('temperature')
 		data['frag-size'] = ctx.get('frag_size')
@@ -51,19 +53,21 @@ class RedisFeedback(Feedback):
 		#
 		data['score'] = score
 		data['datetime'] = str(datetime.datetime.now())
-		key1 = f'feedback:v1:{fb_hash}'
+		key1 = f'feedback:v2:{fb_hash}'
 		if not details:
 			for k in ['question','answer','hyde-summary']:
 				data[k] = ''
 		p.hset(key1, mapping=data)
 		# feedback-score
-		key3 = f'feedback-score:v1:{self.user}'
+		key3 = f'feedback-score:v2:{self.user}'
 		p.sadd(key3, fb_hash)
+		# feedback-by-date
+		# TODO
 		# execute
 		p.execute()
 	
 	def get_score(self):
-		key = f'feedback-score:v1:{self.user}'
+		key = f'feedback-score:v2:{self.user}'
 		return self.db.scard(key)
 
 

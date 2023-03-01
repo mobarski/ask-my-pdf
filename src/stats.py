@@ -14,7 +14,7 @@ class Stats:
 			user = self.user,
 		)
 		for k,v in variables.items():
-			key = key.replace('{'+k+'}',v)
+			key = key.replace('{'+k+'}',v) # TODO: other characters? now it's easy to confuse it with f-strings!
 		return key
 	
 
