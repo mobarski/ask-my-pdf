@@ -253,7 +253,7 @@ def b_save():
 	db = ss.get('storage')
 	index = ss.get('index')
 	name = ss.get('filename')
-	help = "The file will be stored for about 30 days."
+	help = "The file will be stored for about 90 days."
 	if st.button('save encrypted index in ask-my-pdf', disabled=not db or not index or not name, help=help):
 		with st.spinner('saving to ask-my-pdf'):
 			db.put(name, index)
