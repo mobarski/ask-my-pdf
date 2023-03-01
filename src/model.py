@@ -1,6 +1,7 @@
 from sklearn.metrics.pairwise import cosine_distances
 
 from collections import Counter
+from time import time as now
 import hashlib
 import re
 import io
@@ -38,9 +39,9 @@ def get_vectors(text_list, pg=None):
 		vectors += [v]
 		if pg:
 			pg.progress((i+1)/len(text_list))
-	return {'vectors':vectors, 'usage':dict(usage)}
+	return {'vectors':vectors, 'usage':dict(usage), 'model':resp['model']}
 
-def index_file(f, fix_text=False, frag_size=0, pg=None):
+def index_file(f, fix_text=False, frag_size=0, pg=None, stats=None):
 	"return vector index (dictionary) for a given PDF file"
 	# calc md5
 	h = hashlib.md5()
@@ -48,15 +49,22 @@ def index_file(f, fix_text=False, frag_size=0, pg=None):
 	md5 = h.hexdigest()
 	f.seek(0)
 	#
+	t0 = now()
 	pages = pdf.pdf_to_pages(f)
+	t1 = now()
+	
 	if fix_text:
 		for i in range(len(pages)):
 			pages[i] = fix_text_problems(pages[i], pg)
 	texts = split_pages_into_fragments(pages, frag_size)
+	t2 = now()
 	resp = get_vectors(texts, pg)
+	t3 = now()
 	vectors = resp['vectors']
 	summary_prompt = f"{texts[0]}\n\nDescribe the document from which the fragment is extracted. Omit any details.\n\n" # TODO: move to prompts.py
 	summary = ai.complete(summary_prompt)
+	t4 = now()
+	usage = resp['usage']
 	out = {}
 	out['frag_size'] = frag_size
 	out['size']    = len(texts)
@@ -65,7 +73,14 @@ def index_file(f, fix_text=False, frag_size=0, pg=None):
 	out['vectors'] = vectors
 	out['summary'] = summary['text']
 	out['hash']    = f'md5:{md5}'
-	out['usage']   = resp['usage']    
+	out['usage']   = usage
+	out['model']   = resp['model']
+	out['time']    = {'pdf_to_pages':t1-t0, 'split_pages':t2-t1, 'get_vectors':t3-t2, 'summary':t4-t3}
+	if stats:
+		# !!! {date} {user} {hour} will be rendered by the stats object !!!
+		model = out['model']
+		stats.incr('usage:v2:{date}:{user}', {f'index:{k}:{model}':v           for k,v in usage.items()})
+		stats.incr('hourly:v2:{date}',       {f'index:{k}:{model}'+':{hour}':v for k,v in usage.items()})
 	return out
 
 def split_pages_into_fragments(pages, frag_size):
@@ -118,20 +133,26 @@ def fix_text_problems(text, pg=None):
 	text = re.sub('\s+[-]\s+','',text) # word continuation in the next line
 	return text
 
-def query(text, index, task=None, temperature=0.0, max_frags=1, hyde=False, hyde_prompt=None, limit=None, n_before=1, n_after=1):
+def query(text, index, task=None, temperature=0.0, max_frags=1, hyde=False, hyde_prompt=None, limit=None, n_before=1, n_after=1, stats=None, model=None):
 	"get dictionary with the answer for the given question (text)."
 	out = {}
 	
 	if hyde:
+		# TODO: model param
 		out['hyde'] = hypotetical_answer(text, index, hyde_prompt=hyde_prompt, temperature=temperature)
+		# TODO: usage
 	
 	# RANK FRAGMENTS
 	if hyde:
 		resp = ai.embedding(out['hyde']['text'])
+		# TODO: usage
 	else:
 		resp = ai.embedding(text)
+		# TODO: usage
 	v = resp['vector']
+	t0 = now()
 	id_list, dist_list, text_list = query_by_vector(v, index, limit=limit)
+	dt0 = now()-t0
 	
 	# BUILD PROMPT
 	
@@ -170,11 +191,12 @@ def query(text, index, task=None, temperature=0.0, max_frags=1, hyde=False, hyde
 		Answer:""" # TODO: move to prompts.py
 	
 	# GET ANSWER
-	resp2 = ai.complete(prompt, temperature=temperature)
+	resp2 = ai.complete(prompt, temperature=temperature, model=model)
 	answer = resp2['text']
 	usage = resp2['usage']
 	
 	# OUTPUT
+	out['vector_query_time'] = dt0
 	out['id_list'] = id_list
 	out['dist_list'] = dist_list
 	out['selected'] = selected
@@ -183,8 +205,14 @@ def query(text, index, task=None, temperature=0.0, max_frags=1, hyde=False, hyde
 	#out['query.vector'] = resp['vector']
 	out['usage'] = usage
 	out['prompt'] = prompt
+	out['model'] = resp2['model']
 	# CORE
 	out['text'] = answer
+	if stats:
+		# !!! {date} {user} {hour} will be rendered by the stats object !!!
+		model = out['model']
+		stats.incr('usage:v2:{date}:{user}', {f'ask:{k}:{model}':v for k,v in usage.items()})
+		stats.incr('hourly:v2:{date}',       {f'ask:{k}:{model}'+':{hour}':v for k,v in usage.items()})
 	return out
 
 def hypotetical_answer(text, index, hyde_prompt=None, temperature=0.0):
