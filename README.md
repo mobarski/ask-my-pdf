@@ -50,7 +50,7 @@ General configuration:
 
 - **STATS_MODE** - usage stats storage mode: REDIS, DICT (default)
 
-- **FEEDBACK_MODE** - user feedback storage mode: REDIS, DICT (default)
+- **FEEDBACK_MODE** - user feedback storage mode: REDIS, NONE (default)
 
 Local filesystem storage configuration:
 
