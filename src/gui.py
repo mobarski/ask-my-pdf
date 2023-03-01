@@ -90,7 +90,7 @@ def debug_index():
 	d['summary'] = index['summary']
 	d['pages'] = index['pages']
 	d['texts'] = index['texts']
-	d['time'] = index['time']
+	d['time'] = index.get('time',{})
 	ss['debug']['index'] = d
 
 def ui_pdf_file():
