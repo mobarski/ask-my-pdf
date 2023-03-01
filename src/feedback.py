@@ -76,4 +76,4 @@ def get_feedback_adapter(user):
 	if MODE=='REDIS':
 		return RedisFeedback(user)
 	else:
-		return Feedback()
+		return Feedback(user)
