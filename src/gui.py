@@ -90,7 +90,7 @@ def debug_index():
 	d['summary'] = index['summary']
 	d['pages'] = index['pages']
 	d['texts'] = index['texts']
-	d['time'] = index['time']
+	d['time'] = index.get('time',{})
 	ss['debug']['index'] = d
 
 def ui_pdf_file():
@@ -253,7 +253,7 @@ def b_save():
 	db = ss.get('storage')
 	index = ss.get('index')
 	name = ss.get('filename')
-	help = "The file will be stored for about 30 days."
+	help = "The file will be stored for about 90 days."
 	if st.button('save encrypted index in ask-my-pdf', disabled=not db or not index or not name, help=help):
 		with st.spinner('saving to ask-my-pdf'):
 			db.put(name, index)
