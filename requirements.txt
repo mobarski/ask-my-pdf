@@ -1,5 +1,5 @@
 openai
-PyPDF2==2.12.1
+pypdf
 scikit-learn
 numpy
 tiktoken
