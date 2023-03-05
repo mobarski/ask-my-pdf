@@ -1,4 +1,4 @@
-__version__ = "0.4.4.1"
+__version__ = "0.4.4.2"
 app_name = "Ask my PDF"
 
 
@@ -19,7 +19,6 @@ header3 = st.empty() # for errors / messages
 import prompts
 import model
 import storage
-import stats
 import feedback
 
 from time import time as now
@@ -64,7 +63,7 @@ def ui_api_key():
 		#
 		ss['storage'] = storage.get_storage(api_key, data_dict=ss['data_dict'])
 		ss['user'] = ss['storage'].folder # TODO: refactor user 'calculation' from get_storage
-		ss['stats'] = stats.get_stats(ss['user'])
+		model.set_user(ss['user'])
 		ss['feedback'] = feedback.get_feedback_adapter(ss['user'])
 		ss['feedback_score'] = ss['feedback'].get_score()
 		#
@@ -75,8 +74,7 @@ def ui_api_key():
 def index_pdf_file():
 	if ss['pdf_file']:
 		ss['filename'] = ss['pdf_file'].name
-		index = model.index_file(ss['pdf_file'], fix_text=ss['fix_text'], frag_size=ss['frag_size'], pg=ss['pg_index'], stats=ss['stats'])
-		ss['debug']['stats'] = ss['stats'].get('usage:v2:{date}:{user}')
+		index = model.index_file(ss['pdf_file'], fix_text=ss['fix_text'], frag_size=ss['frag_size'], pg=ss['pg_index'])
 		ss['index'] = index
 		debug_index()
 
@@ -220,12 +218,10 @@ def b_ask():
 					limit=max_frags+2,
 					n_before=n_before,
 					n_after=n_after,
-					stats=ss['stats'],
 					model=ss['model'],
 				)
 		usage = resp.get('usage',{})
 		usage['cnt'] = 1
-		ss['debug']['stats'] = ss['stats'].get('usage:v2:{date}:{user}')
 		ss['debug']['model.query.resp'] = resp
 		ss['debug']['resp.usage'] = usage
 		ss['debug']['model.vector_query_time'] = resp['vector_query_time']

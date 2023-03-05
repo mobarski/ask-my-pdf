@@ -12,6 +12,9 @@ import ai
 def use_key(api_key):
 	ai.use_key(api_key)
 
+def set_user(user):
+	ai.set_user(user)
+
 def query_by_vector(vector, index, limit=None):
 	"return (ids, distances and texts) sorted by cosine distance"
 	vectors = index['vectors']
@@ -41,7 +44,7 @@ def get_vectors(text_list, pg=None):
 			pg.progress((i+1)/len(text_list))
 	return {'vectors':vectors, 'usage':dict(usage), 'model':resp['model']}
 
-def index_file(f, fix_text=False, frag_size=0, pg=None, stats=None):
+def index_file(f, fix_text=False, frag_size=0, pg=None):
 	"return vector index (dictionary) for a given PDF file"
 	# calc md5
 	h = hashlib.md5()
@@ -76,11 +79,6 @@ def index_file(f, fix_text=False, frag_size=0, pg=None, stats=None):
 	out['usage']   = usage
 	out['model']   = resp['model']
 	out['time']    = {'pdf_to_pages':t1-t0, 'split_pages':t2-t1, 'get_vectors':t3-t2, 'summary':t4-t3}
-	if stats:
-		# !!! {date} {user} {hour} will be rendered by the stats object !!!
-		model = out['model']
-		stats.incr('usage:v2:{date}:{user}', {f'index:{k}:{model}':v           for k,v in usage.items()})
-		stats.incr('hourly:v2:{date}',       {f'index:{k}:{model}'+':{hour}':v for k,v in usage.items()})
 	return out
 
 def split_pages_into_fragments(pages, frag_size):
@@ -133,7 +131,7 @@ def fix_text_problems(text, pg=None):
 	text = re.sub('\s+[-]\s+','',text) # word continuation in the next line
 	return text
 
-def query(text, index, task=None, temperature=0.0, max_frags=1, hyde=False, hyde_prompt=None, limit=None, n_before=1, n_after=1, stats=None, model=None):
+def query(text, index, task=None, temperature=0.0, max_frags=1, hyde=False, hyde_prompt=None, limit=None, n_before=1, n_after=1, model=None):
 	"get dictionary with the answer for the given question (text)."
 	out = {}
 	
@@ -208,11 +206,6 @@ def query(text, index, task=None, temperature=0.0, max_frags=1, hyde=False, hyde
 	out['model'] = resp2['model']
 	# CORE
 	out['text'] = answer
-	if stats:
-		# !!! {date} {user} {hour} will be rendered by the stats object !!!
-		model = out['model']
-		stats.incr('usage:v2:{date}:{user}', {f'ask:{k}:{model}':v for k,v in usage.items()})
-		stats.incr('hourly:v2:{date}',       {f'ask:{k}:{model}'+':{hour}':v for k,v in usage.items()})
 	return out
 
 def hypotetical_answer(text, index, hyde_prompt=None, temperature=0.0):

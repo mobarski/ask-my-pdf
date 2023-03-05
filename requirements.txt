@@ -1,8 +1,7 @@
-openai
+git+https://github.com/mobarski/ai-bricks.git
 pypdf
 scikit-learn
 numpy
-tiktoken
 pycryptodome
 boto3
 redis
