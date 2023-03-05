@@ -1,71 +1,37 @@
-"AI (LLM) adapter"
-# TODO: replace with ai_bricks.ai_openai
+from ai_bricks.api import openai
+import stats
 
-BUTCHER_EMBEDDINGS = None # this should be None, as it cuts the embedding vector to n first values (for debugging)
+def use_key(key):
+	openai.use_key(key)
 
+usage_stats = None
+def set_user(user):
+	global usage_stats
+	usage_stats = stats.get_stats(user=user)
+	openai.set_global('user', user)
+	openai.add_callback('after', stats_callback)
 
-import tiktoken
-encoder = tiktoken.encoding_for_model("text-davinci-003")
+def complete(text, **kw):
+	model = kw.get('model','gpt-3.5-turbo')
+	llm = openai.model(model)
+	llm.config['pre_prompt'] = 'output only in raw text' # for chat models
+	resp = llm.complete(text, **kw)
+	resp['model'] = model
+	return resp
+
+def embedding(text, **kw):
+	model = kw.get('model','text-embedding-ada-002')
+	llm = openai.model(model)
+	resp = llm.embed(text, **kw)
+	resp['model'] = model
+	return resp
+
+tokenizer_model = openai.model('text-davinci-003')
 def get_token_count(text):
-	tokens = encoder.encode(text)
-	return len(tokens)
+	return tokenizer_model.token_count(text)
 
-
-# REF: https://platform.openai.com/docs/models
-def get_model_max_tokens(model):
-	model_max_tokens = {
-		'gpt-3.5-turbo':4096,
-		'text-davinci-003':4000,
-		'text-davinci-002':4000,
-		'text-davinci-001':4000,
-		'code-davinci-002':8000,
-	}
-	return model_max_tokens.get(model, 2048)
-
-def is_chat(model):
-	return model.startswith('gpt') # TODO
-
-
-import openai
-
-def use_key(api_key):
-	openai.api_key = api_key
-
-def complete(prompt, temperature=0.0, model=None):
-	model = model or 'text-davinci-003'
-	kwargs = dict(
-		model = model,
-		max_tokens = get_model_max_tokens(model) - get_token_count(prompt),
-		temperature = temperature,
-		n = 1,
-	)
-	out = {}
-	if is_chat(model):
-		kwargs['messages'] = [
-				{'role':'system', 'content':'output only in raw text'},
-				{'role':'user',   'content':prompt},
-			]
-		kwargs['max_tokens'] -= 30 # UGLY: workaround for not counting chat specific tokens
-		resp = openai.ChatCompletion.create(**kwargs) # API CALL
-		out['text'] = resp['choices'][0]['message']['content']
-	else:
-		kwargs['prompt'] = prompt
-		resp = openai.Completion.create(**kwargs) # API CALL
-		out['text']  = resp['choices'][0]['text']
-	out['usage'] = resp['usage']
-	out['model'] = model
-	return out
-
-
-def embedding(text, model=None):
-	model = model or "text-embedding-ada-002"
-	resp = openai.Embedding.create(
-		input=text,
-		model=model,
-	)
-	out = {}
-	out['vector'] = list(resp['data'][0]['embedding'][:BUTCHER_EMBEDDINGS])
-	out['usage']  = dict(resp['usage'])
-	out['model'] = model
-	return out
-
+def stats_callback(out, resp, self):
+	model = self.config['model']
+	usage = resp['usage']
+	usage_stats.incr(f'usage:v3:[date]:[user]', {f'{k}:{model}':v for k,v in usage.items()})
+	usage_stats.incr(f'hourly:v3:[date]',       {f'[hour]:{k}:{model}':v for k,v in usage.items()})
