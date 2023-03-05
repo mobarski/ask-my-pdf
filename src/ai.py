@@ -33,5 +33,5 @@ def get_token_count(text):
 def stats_callback(out, resp, self):
 	model = self.config['model']
 	usage = resp['usage']
-	usage_stats.incr(f'usage:v3:[date]:[user]', {f'{k}:{model}':v for k,v in usage.items()})
-	usage_stats.incr(f'hourly:v3:[date]',       {f'[hour]:{k}:{model}':v for k,v in usage.items()})
+	usage_stats.incr(f'usage:v4:[date]:[user]', {f'{k}:{model}':v for k,v in usage.items()})
+	usage_stats.incr(f'hourly:v4:[date]',       {f'{k}:{model}:[hour]':v for k,v in usage.items()})
