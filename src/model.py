@@ -1,10 +1,12 @@
 from sklearn.metrics.pairwise import cosine_distances
 
+import datetime
 from collections import Counter
 from time import time as now
 import hashlib
 import re
 import io
+import os
 
 import pdf
 import ai
@@ -219,6 +221,22 @@ def hypotetical_answer(text, index, hyde_prompt=None, temperature=0.0):
 	return resp
 
 
+def community_tokens_available_pct():
+	used = ai.get_community_usage_cost()
+	limit = float(os.getenv('COMMUNITY_DAILY_USD',0))
+	pct = (100.0 * (limit-used) / limit) if limit else 0
+	pct = max(0, pct)
+	pct = min(100, pct)
+	return pct
+
+
+def community_tokens_refresh_in():
+	x = datetime.datetime.now()
+	dt = (x.replace(hour=23, minute=59, second=59) - x).seconds
+	h = dt // 3600
+	m = dt  % 3600 // 60
+	return f"{h} h {m} min"
+
+
 if __name__=="__main__":
 	print(text_to_fragments("to jest. test tego. programu", size=3, page_offset=[0,5,10,15,20]))
-	

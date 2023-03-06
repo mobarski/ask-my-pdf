@@ -1,4 +1,4 @@
-__version__ = "0.4.4.2"
+__version__ = "0.5"
 app_name = "Ask my PDF"
 
 
@@ -20,8 +20,30 @@ import prompts
 import model
 import storage
 import feedback
+import os
 
 from time import time as now
+
+# HANDLERS
+
+def on_api_key_change():
+	api_key = ss.get('api_key', os.getenv('OPENAI_KEY'))
+	model.use_key(api_key)
+	#
+	if 'data_dict' not in ss: ss['data_dict'] = {} # used only with DictStorage
+	ss['storage'] = storage.get_storage(api_key, data_dict=ss['data_dict'])
+	ss['user'] = ss['storage'].folder # TODO: refactor user 'calculation' from get_storage
+	model.set_user(ss['user'])
+	ss['feedback'] = feedback.get_feedback_adapter(ss['user'])
+	ss['feedback_score'] = ss['feedback'].get_score()
+	#
+	ss['debug']['storage.folder'] = ss['storage'].folder
+	ss['debug']['storage.class'] = ss['storage'].__class__.__name__
+
+if 'user' not in ss:
+	# community user
+	on_api_key_change()
+
 
 # COMPONENTS
 
@@ -55,21 +77,17 @@ def ui_info():
 	st.markdown('Source code can be found [here](https://github.com/mobarski/ask-my-pdf).')
 
 def ui_api_key():
-	st.write('## 1. Enter your OpenAI API key')
-	def on_change():
-		api_key = ss['api_key']
-		model.use_key(api_key)
-		if 'data_dict' not in ss: ss['data_dict'] = {} # used only with DictStorage
-		#
-		ss['storage'] = storage.get_storage(api_key, data_dict=ss['data_dict'])
-		ss['user'] = ss['storage'].folder # TODO: refactor user 'calculation' from get_storage
-		model.set_user(ss['user'])
-		ss['feedback'] = feedback.get_feedback_adapter(ss['user'])
-		ss['feedback_score'] = ss['feedback'].get_score()
-		#
-		ss['debug']['storage.folder'] = ss['storage'].folder
-		ss['debug']['storage.class'] = ss['storage'].__class__.__name__
-	st.text_input('OpenAI API key', type='password', key='api_key', on_change=on_change, label_visibility="collapsed")
+	st.write('## 1. Optional - enter your OpenAI API key')
+	t1,t2 = st.tabs(['community version','enter your own API key'])
+	with t1:
+		pct = model.community_tokens_available_pct()
+		st.write(f'Community tokens available: {int(pct)}%')
+		st.progress(pct/100)
+		st.write('Refresh in: ' + model.community_tokens_refresh_in())
+		st.write('You can sign up to OpenAI and/or create your API key [here](https://platform.openai.com/account/api-keys)')
+		ss['community_pct'] = pct
+	with t2:
+		st.text_input('OpenAI API key', type='password', key='api_key', on_change=on_api_key_change, label_visibility="collapsed")
 
 def index_pdf_file():
 	if ss['pdf_file']:
@@ -93,7 +111,7 @@ def debug_index():
 
 def ui_pdf_file():
 	st.write('## 2. Upload or select your PDF file')
-	disabled = not ss.get('api_key')
+	disabled = not ss.get('user') or (not ss.get('api_key') and not ss.get('community_pct',0))
 	t1,t2 = st.tabs(['UPLOAD','SELECT'])
 	with t1:
 		ss['pg_index'] = st.progress(0)
@@ -115,8 +133,9 @@ def ui_pdf_file():
 				ss['index'] = index
 				debug_index()
 			else:
-				ss['index'] = {}
-		st.selectbox('select file', filenames, on_change=on_change, key='selected_file', label_visibility="collapsed")
+				#ss['index'] = {}
+				pass
+		st.selectbox('select file', filenames, on_change=on_change, key='selected_file', label_visibility="collapsed", disabled=disabled)
 		b_delete()
 		ss['spin_select_file'] = st.empty()
 
@@ -160,7 +179,7 @@ def ui_hyde_prompt():
 	st.text_area('HyDE prompt', prompts.HYDE, key='hyde_prompt')
 
 def ui_question():
-	st.write('## 3. Ask questions'+f' to {ss["filename"]}' if ss.get('filename') else '')
+	st.write('## 3. Ask questions'+(f' to {ss["filename"]}' if ss.get('filename') else ''))
 	disabled = not ss.get('api_key')
 	st.text_area('question', key='question', height=100, placeholder='Enter question here', help='', label_visibility="collapsed", disabled=disabled)
 
@@ -194,7 +213,7 @@ def b_ask():
 	#c1,c2,c3 = st.columns([1,3,1])
 	#c2.radio('zzz',['👍',r'...',r'👎'],horizontal=True,label_visibility="collapsed")
 	#
-	disabled = not ss.get('api_key') or not ss.get('index')
+	disabled = not ss.get('api_key') or not ss.get('index') or (not ss.get('api_key') and not ss.get('community_pct',0))
 	if c1.button('get answer', disabled=disabled, type='primary', use_container_width=True):
 		question = ss.get('question','')
 		temperature = ss.get('temperature', 0.0)
@@ -249,8 +268,10 @@ def b_save():
 	db = ss.get('storage')
 	index = ss.get('index')
 	name = ss.get('filename')
-	help = "The file will be stored for about 90 days."
-	if st.button('save encrypted index in ask-my-pdf', disabled=not db or not index or not name, help=help):
+	api_key = ss.get('api_key')
+	disabled = not api_key or not db or not index or not name
+	help = "The file will be stored for about 90 days. Available only when using your own API key."
+	if st.button('save encrypted index in ask-my-pdf', disabled=disabled, help=help):
 		with st.spinner('saving to ask-my-pdf'):
 			db.put(name, index)
 

@@ -43,12 +43,13 @@ class RedisFeedback(Feedback):
 		data['frag-n-before'] = ctx.get('n_frag_before')
 		data['frag-n-after'] = ctx.get('n_frag_after')
 		data['filename'] = ctx.get('filename')
+		data['filehash'] = ctx.get('index',{}).get('hash')
 		data['use-hyde'] = as_int(ctx.get('use_hyde'))
 		data['use-hyde-summary'] = as_int(ctx.get('use_hyde_summary'))
 		data['question'] = ctx.get('question')
 		data['answer'] = ctx.get('answer')
 		data['hyde-summary'] = ctx.get('index',{}).get('summary')
-		#data['filehash'] = ctx.get('') # TODO
+		#data[''] # TODO dist-vectors
 		fb_hash = hexdigest(str(list(sorted(data.items()))))
 		#
 		data['score'] = score
