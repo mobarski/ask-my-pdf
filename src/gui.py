@@ -1,4 +1,4 @@
-__version__ = "0.5"
+__version__ = "0.4.6"
 app_name = "Ask my PDF"
 
 
@@ -213,7 +213,7 @@ def b_ask():
 	#c1,c2,c3 = st.columns([1,3,1])
 	#c2.radio('zzz',['👍',r'...',r'👎'],horizontal=True,label_visibility="collapsed")
 	#
-	disabled = not ss.get('api_key') or not ss.get('index') or (not ss.get('api_key') and not ss.get('community_pct',0))
+	disabled = (not ss.get('api_key') and not ss.get('community_pct',0)) or not ss.get('index')
 	if c1.button('get answer', disabled=disabled, type='primary', use_container_width=True):
 		question = ss.get('question','')
 		temperature = ss.get('temperature', 0.0)
