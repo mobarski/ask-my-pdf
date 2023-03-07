@@ -49,7 +49,7 @@ class RedisFeedback(Feedback):
 		data['question'] = ctx.get('question')
 		data['answer'] = ctx.get('answer')
 		data['hyde-summary'] = ctx.get('index',{}).get('summary')
-		#data[''] # TODO dist-vectors
+		data['resp-dist-list'] = ctx.get('debug',{}).get('model.query.resp',{}).get('dist_list',[])
 		fb_hash = hexdigest(str(list(sorted(data.items()))))
 		#
 		data['score'] = score

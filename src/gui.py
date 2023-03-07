@@ -1,4 +1,4 @@
-__version__ = "0.5"
+__version__ = "0.4.6"
 app_name = "Ask my PDF"
 
 
@@ -27,7 +27,8 @@ from time import time as now
 # HANDLERS
 
 def on_api_key_change():
-	api_key = ss.get('api_key', os.getenv('OPENAI_KEY'))
+	api_key = ss.get('api_key') or os.getenv('OPENAI_KEY')
+	print('API_KEY_CHANGE', api_key) # XXX
 	model.use_key(api_key)
 	#
 	if 'data_dict' not in ss: ss['data_dict'] = {} # used only with DictStorage
@@ -81,11 +82,12 @@ def ui_api_key():
 	t1,t2 = st.tabs(['community version','enter your own API key'])
 	with t1:
 		pct = model.community_tokens_available_pct()
-		st.write(f'Community tokens available: {int(pct)}%')
+		st.write(f'Community tokens available: :{"green" if pct else "red"}[{int(pct)}%]')
 		st.progress(pct/100)
 		st.write('Refresh in: ' + model.community_tokens_refresh_in())
 		st.write('You can sign up to OpenAI and/or create your API key [here](https://platform.openai.com/account/api-keys)')
 		ss['community_pct'] = pct
+		ss['debug']['community_pct'] = pct
 	with t2:
 		st.text_input('OpenAI API key', type='password', key='api_key', on_change=on_api_key_change, label_visibility="collapsed")
 
@@ -180,7 +182,7 @@ def ui_hyde_prompt():
 
 def ui_question():
 	st.write('## 3. Ask questions'+(f' to {ss["filename"]}' if ss.get('filename') else ''))
-	disabled = not ss.get('api_key')
+	disabled = False
 	st.text_area('question', key='question', height=100, placeholder='Enter question here', help='', label_visibility="collapsed", disabled=disabled)
 
 # REF: Hypotetical Document Embeddings
@@ -213,7 +215,7 @@ def b_ask():
 	#c1,c2,c3 = st.columns([1,3,1])
 	#c2.radio('zzz',['👍',r'...',r'👎'],horizontal=True,label_visibility="collapsed")
 	#
-	disabled = not ss.get('api_key') or not ss.get('index') or (not ss.get('api_key') and not ss.get('community_pct',0))
+	disabled = (not ss.get('api_key') and not ss.get('community_pct',0)) or not ss.get('index')
 	if c1.button('get answer', disabled=disabled, type='primary', use_container_width=True):
 		question = ss.get('question','')
 		temperature = ss.get('temperature', 0.0)
