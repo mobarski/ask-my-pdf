@@ -30,6 +30,7 @@ class RedisFeedback(Feedback):
 
 	def send(self, score, ctx, details=False):
 		p = self.db.pipeline()
+		dist_list = ctx.get('debug',{}).get('model.query.resp',{}).get('dist_list',[])
 		# feedback
 		index = ctx.get('index',{})
 		data = {}
@@ -46,14 +47,14 @@ class RedisFeedback(Feedback):
 		data['filename'] = ctx.get('filename')
 		data['filehash'] = index.get('hash') or index.get('filehash')
 		data['filesize'] = index.get('filesize')
-		data['file-n-pages'] = index.get('n_pages')
-		data['file-n-texts'] = index.get('n_texts')
+		data['n-pages'] = index.get('n_pages')
+		data['n-texts'] = index.get('n_texts')
 		data['use-hyde'] = as_int(ctx.get('use_hyde'))
 		data['use-hyde-summary'] = as_int(ctx.get('use_hyde_summary'))
 		data['question'] = ctx.get('question')
 		data['answer'] = ctx.get('answer')
 		data['hyde-summary'] = index.get('summary')
-		data['resp-dist-list'] = ctx.get('debug',{}).get('model.query.resp',{}).get('dist_list',[])
+		data['resp-dist-list'] = '|'.join([f"{x:0.3f}" for x in dist_list])
 		fb_hash = hexdigest(str(list(sorted(data.items()))))
 		#
 		data['score'] = score
@@ -63,12 +64,13 @@ class RedisFeedback(Feedback):
 			for k in ['question','answer','hyde-summary']:
 				data[k] = ''
 		p.hset(key1, mapping=data)
+		# feedback-daily
+		date = datetime.date.today()
+		key2 = f'feedback-daily:v1:{date}:{"positive" if score > 0 else "negative"}'
+		p.sadd(key2, fb_hash)
 		# feedback-score
 		key3 = f'feedback-score:v2:{self.user}'
 		p.sadd(key3, fb_hash)
-		# feedback-by-date
-		# TODO
-		# execute
 		p.execute()
 	
 	def get_score(self):

@@ -45,7 +45,7 @@ def get_vectors(text_list):
 		vectors.extend(v)
 	return {'vectors':vectors, 'usage':dict(usage), 'model':resp['model']}
 
-def index_file(f, fix_text=False, frag_size=0):
+def index_file(f, filename, fix_text=False, frag_size=0):
 	"return vector index (dictionary) for a given PDF file"
 	# calc md5
 	h = hashlib.md5()
