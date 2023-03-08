@@ -93,9 +93,10 @@ def ui_api_key():
 def index_pdf_file():
 	if ss['pdf_file']:
 		ss['filename'] = ss['pdf_file'].name
-		index = model.index_file(ss['pdf_file'], fix_text=ss['fix_text'], frag_size=ss['frag_size'], pg=ss['pg_index'])
-		ss['index'] = index
-		debug_index()
+		with st.spinner(f'indexing {ss["filename"]}'):
+			index = model.index_file(ss['pdf_file'], ss['filename'], fix_text=ss['fix_text'], frag_size=ss['frag_size'])
+			ss['index'] = index
+			debug_index()
 
 def debug_index():
 	index = ss['index']
@@ -115,7 +116,6 @@ def ui_pdf_file():
 	disabled = not ss.get('user') or (not ss.get('api_key') and not ss.get('community_pct',0))
 	t1,t2 = st.tabs(['UPLOAD','SELECT'])
 	with t1:
-		ss['pg_index'] = st.progress(0)
 		st.file_uploader('pdf file', type='pdf', key='pdf_file', disabled=disabled, on_change=index_pdf_file, label_visibility="collapsed")
 		b_save()
 	with t2:

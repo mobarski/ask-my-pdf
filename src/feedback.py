@@ -31,6 +31,7 @@ class RedisFeedback(Feedback):
 	def send(self, score, ctx, details=False):
 		p = self.db.pipeline()
 		# feedback
+		index = ctx.get('index',{})
 		data = {}
 		data['user'] = self.user
 		data['task-prompt-version'] = ctx.get('task_name')
@@ -43,12 +44,15 @@ class RedisFeedback(Feedback):
 		data['frag-n-before'] = ctx.get('n_frag_before')
 		data['frag-n-after'] = ctx.get('n_frag_after')
 		data['filename'] = ctx.get('filename')
-		data['filehash'] = ctx.get('index',{}).get('hash')
+		data['filehash'] = index.get('hash') or index.get('filehash')
+		data['filesize'] = index.get('filesize')
+		data['file-n-pages'] = index.get('n_pages')
+		data['file-n-texts'] = index.get('n_texts')
 		data['use-hyde'] = as_int(ctx.get('use_hyde'))
 		data['use-hyde-summary'] = as_int(ctx.get('use_hyde_summary'))
 		data['question'] = ctx.get('question')
 		data['answer'] = ctx.get('answer')
-		data['hyde-summary'] = ctx.get('index',{}).get('summary')
+		data['hyde-summary'] = index.get('summary')
 		data['resp-dist-list'] = ctx.get('debug',{}).get('model.query.resp',{}).get('dist_list',[])
 		fb_hash = hexdigest(str(list(sorted(data.items()))))
 		#
