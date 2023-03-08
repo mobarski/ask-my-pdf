@@ -1,10 +1,13 @@
 from ai_bricks.api import openai
 import stats
+import os
+
+DEFAULT_USER = 'f779c0d6f48393ef' # community user
 
 def use_key(key):
 	openai.use_key(key)
 
-usage_stats = None
+usage_stats = stats.get_stats(user=DEFAULT_USER)
 def set_user(user):
 	global usage_stats
 	usage_stats = stats.get_stats(user=user)
@@ -26,6 +29,13 @@ def embedding(text, **kw):
 	resp['model'] = model
 	return resp
 
+def embeddings(texts, **kw):
+	model = kw.get('model','text-embedding-ada-002')
+	llm = openai.model(model)
+	resp = llm.embed_many(texts, **kw)
+	resp['model'] = model
+	return resp
+
 tokenizer_model = openai.model('text-davinci-003')
 def get_token_count(text):
 	return tokenizer_model.token_count(text)
@@ -33,5 +43,15 @@ def get_token_count(text):
 def stats_callback(out, resp, self):
 	model = self.config['model']
 	usage = resp['usage']
+	usage['call_cnt'] = 1
 	usage_stats.incr(f'usage:v4:[date]:[user]', {f'{k}:{model}':v for k,v in usage.items()})
 	usage_stats.incr(f'hourly:v4:[date]',       {f'{k}:{model}:[hour]':v for k,v in usage.items()})
+
+def get_community_usage_cost():
+	data = usage_stats.get(f'usage:v4:[date]:{DEFAULT_USER}')
+	used = 0.0
+	used += 0.02   * data.get('total_tokens:text-davinci-003',0) / 1000
+	used += 0.002  * data.get('total_tokens:text-curie-001',0) / 1000
+	used += 0.002  * data.get('total_tokens:gpt-3.5-turbo',0) / 1000
+	used += 0.0004 * data.get('total_tokens:text-embedding-ada-002',0) / 1000
+	return used
