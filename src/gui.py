@@ -93,10 +93,12 @@ def ui_api_key():
 def index_pdf_file():
 	if ss['pdf_file']:
 		ss['filename'] = ss['pdf_file'].name
-		with st.spinner(f'indexing {ss["filename"]}'):
-			index = model.index_file(ss['pdf_file'], ss['filename'], fix_text=ss['fix_text'], frag_size=ss['frag_size'])
-			ss['index'] = index
-			debug_index()
+		if ss['filename'] != ss.get('fielname_done'): # UGLY
+			with st.spinner(f'indexing {ss["filename"]}'):
+				index = model.index_file(ss['pdf_file'], ss['filename'], fix_text=ss['fix_text'], frag_size=ss['frag_size'])
+				ss['index'] = index
+				debug_index()
+				ss['filename_done'] = ss['filename'] # UGLY
 
 def debug_index():
 	index = ss['index']
@@ -160,7 +162,7 @@ def ui_fragments():
 
 def ui_model():
 	models = ['gpt-3.5-turbo','text-davinci-003','text-curie-001']
-	st.selectbox('main model', models, key='model')
+	st.selectbox('main model', models, key='model', disabled=not ss.get('api_key'))
 	st.selectbox('embedding model', ['text-embedding-ada-002'], key='model_embed') # FOR FUTURE USE
 
 def ui_hyde():
@@ -257,6 +259,7 @@ def b_clear():
 		ss['output'] = ''
 
 def b_reindex():
+	# TODO: disabled
 	if st.button('reindex'):
 		index_pdf_file()
 
@@ -283,7 +286,7 @@ def b_delete():
 	if st.button('delete from ask-my-pdf', disabled=not db or not name):
 		with st.spinner('deleting from ask-my-pdf'):
 			db.delete(name)
-		st.experimental_rerun()
+		#st.experimental_rerun()
 
 def output_add(q,a):
 	if 'output' not in ss: ss['output'] = ''
