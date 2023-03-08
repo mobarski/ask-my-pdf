@@ -1,4 +1,4 @@
-__version__ = "0.4.6"
+__version__ = "0.4.7"
 app_name = "Ask my PDF"
 
 
@@ -93,9 +93,12 @@ def ui_api_key():
 def index_pdf_file():
 	if ss['pdf_file']:
 		ss['filename'] = ss['pdf_file'].name
-		index = model.index_file(ss['pdf_file'], fix_text=ss['fix_text'], frag_size=ss['frag_size'], pg=ss['pg_index'])
-		ss['index'] = index
-		debug_index()
+		if ss['filename'] != ss.get('fielname_done'): # UGLY
+			with st.spinner(f'indexing {ss["filename"]}'):
+				index = model.index_file(ss['pdf_file'], ss['filename'], fix_text=ss['fix_text'], frag_size=ss['frag_size'])
+				ss['index'] = index
+				debug_index()
+				ss['filename_done'] = ss['filename'] # UGLY
 
 def debug_index():
 	index = ss['index']
@@ -115,7 +118,6 @@ def ui_pdf_file():
 	disabled = not ss.get('user') or (not ss.get('api_key') and not ss.get('community_pct',0))
 	t1,t2 = st.tabs(['UPLOAD','SELECT'])
 	with t1:
-		ss['pg_index'] = st.progress(0)
 		st.file_uploader('pdf file', type='pdf', key='pdf_file', disabled=disabled, on_change=index_pdf_file, label_visibility="collapsed")
 		b_save()
 	with t2:
@@ -160,7 +162,7 @@ def ui_fragments():
 
 def ui_model():
 	models = ['gpt-3.5-turbo','text-davinci-003','text-curie-001']
-	st.selectbox('main model', models, key='model')
+	st.selectbox('main model', models, key='model', disabled=not ss.get('api_key'))
 	st.selectbox('embedding model', ['text-embedding-ada-002'], key='model_embed') # FOR FUTURE USE
 
 def ui_hyde():
@@ -257,6 +259,7 @@ def b_clear():
 		ss['output'] = ''
 
 def b_reindex():
+	# TODO: disabled
 	if st.button('reindex'):
 		index_pdf_file()
 
@@ -283,7 +286,7 @@ def b_delete():
 	if st.button('delete from ask-my-pdf', disabled=not db or not name):
 		with st.spinner('deleting from ask-my-pdf'):
 			db.delete(name)
-		st.experimental_rerun()
+		#st.experimental_rerun()
 
 def output_add(q,a):
 	if 'output' not in ss: ss['output'] = ''

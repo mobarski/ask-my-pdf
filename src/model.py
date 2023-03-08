@@ -31,27 +31,27 @@ def query_by_vector(vector, index, limit=None):
 	text_list = [texts[x] for x in id_list] if texts else ['ERROR']*len(id_list)
 	return id_list, dist_list, text_list
 
-def get_vectors(text_list, pg=None):
+def get_vectors(text_list):
 	"transform texts into embedding vectors"
+	batch_size = 128
 	vectors = []
 	usage = Counter()
-	for i,text in enumerate(text_list):
-		resp = ai.embedding(text)
-		v = resp['vector']
+	for i,texts in enumerate(batch(text_list, batch_size)):
+		resp = ai.embeddings(texts)
+		v = resp['vectors']
 		u = resp['usage']
-		u['cnt'] = 1
+		u['call_cnt'] = 1
 		usage.update(u)
-		vectors += [v]
-		if pg:
-			pg.progress((i+1)/len(text_list))
+		vectors.extend(v)
 	return {'vectors':vectors, 'usage':dict(usage), 'model':resp['model']}
 
-def index_file(f, fix_text=False, frag_size=0, pg=None):
+def index_file(f, filename, fix_text=False, frag_size=0):
 	"return vector index (dictionary) for a given PDF file"
 	# calc md5
 	h = hashlib.md5()
 	h.update(f.read())
 	md5 = h.hexdigest()
+	filesize = f.tell()
 	f.seek(0)
 	#
 	t0 = now()
@@ -60,10 +60,10 @@ def index_file(f, fix_text=False, frag_size=0, pg=None):
 	
 	if fix_text:
 		for i in range(len(pages)):
-			pages[i] = fix_text_problems(pages[i], pg)
+			pages[i] = fix_text_problems(pages[i])
 	texts = split_pages_into_fragments(pages, frag_size)
 	t2 = now()
-	resp = get_vectors(texts, pg)
+	resp = get_vectors(texts)
 	t3 = now()
 	vectors = resp['vectors']
 	summary_prompt = f"{texts[0]}\n\nDescribe the document from which the fragment is extracted. Omit any details.\n\n" # TODO: move to prompts.py
@@ -72,15 +72,20 @@ def index_file(f, fix_text=False, frag_size=0, pg=None):
 	usage = resp['usage']
 	out = {}
 	out['frag_size'] = frag_size
-	out['size']    = len(texts)
-	out['texts']   = texts
-	out['pages']   = pages
-	out['vectors'] = vectors
-	out['summary'] = summary['text']
-	out['hash']    = f'md5:{md5}'
-	out['usage']   = usage
-	out['model']   = resp['model']
-	out['time']    = {'pdf_to_pages':t1-t0, 'split_pages':t2-t1, 'get_vectors':t3-t2, 'summary':t4-t3}
+	out['n_pages']   = len(pages)
+	out['n_texts']   = len(texts)
+	out['texts']     = texts
+	out['pages']     = pages
+	out['vectors']   = vectors
+	out['summary']   = summary['text']
+	out['filename']  = filename
+	out['filehash']  = f'md5:{md5}'
+	out['filesize']  = filesize
+	out['usage']     = usage
+	out['model']     = resp['model']
+	out['time']      = {'pdf_to_pages':t1-t0, 'split_pages':t2-t1, 'get_vectors':t3-t2, 'summary':t4-t3}
+	out['size']      = len(texts)   # DEPRECATED -> filesize
+	out['hash']      = f'md5:{md5}' # DEPRECATED -> filehash
 	return out
 
 def split_pages_into_fragments(pages, frag_size):
@@ -128,7 +133,7 @@ def find_eos(text):
 
 ###############################################################################
 
-def fix_text_problems(text, pg=None):
+def fix_text_problems(text):
 	"fix common text problems"
 	text = re.sub('\s+[-]\s+','',text) # word continuation in the next line
 	return text
@@ -237,6 +242,10 @@ def community_tokens_refresh_in():
 	m = dt  % 3600 // 60
 	return f"{h} h {m} min"
 
+# util
+def batch(data, n):
+	for i in range(0, len(data), n):
+		yield data[i:i+n]
 
 if __name__=="__main__":
 	print(text_to_fragments("to jest. test tego. programu", size=3, page_offset=[0,5,10,15,20]))

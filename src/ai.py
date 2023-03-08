@@ -29,6 +29,13 @@ def embedding(text, **kw):
 	resp['model'] = model
 	return resp
 
+def embeddings(texts, **kw):
+	model = kw.get('model','text-embedding-ada-002')
+	llm = openai.model(model)
+	resp = llm.embed_many(texts, **kw)
+	resp['model'] = model
+	return resp
+
 tokenizer_model = openai.model('text-davinci-003')
 def get_token_count(text):
 	return tokenizer_model.token_count(text)
