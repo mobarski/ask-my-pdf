@@ -2,6 +2,7 @@ import datetime
 import hashlib
 import redis
 import os
+from retry import retry
 
 def hexdigest(text):
 	return hashlib.md5(text.encode('utf8')).hexdigest()
@@ -28,6 +29,7 @@ class RedisFeedback(Feedback):
 		self.db = redis.Redis.from_url(REDIS_URL)
 		self.user = user
 
+	@retry(tries=5, delay=0.1)
 	def send(self, score, ctx, details=False):
 		p = self.db.pipeline()
 		dist_list = ctx.get('debug',{}).get('model.query.resp',{}).get('dist_list',[])
@@ -73,6 +75,7 @@ class RedisFeedback(Feedback):
 		p.sadd(key3, fb_hash)
 		p.execute()
 	
+	@retry(tries=5, delay=0.1)
 	def get_score(self):
 		key = f'feedback-score:v2:{self.user}'
 		return self.db.scard(key)
