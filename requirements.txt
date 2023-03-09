@@ -5,5 +5,7 @@ numpy
 pycryptodome
 boto3
 redis
+retry
+
 
 #tomli
