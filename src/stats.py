@@ -1,6 +1,7 @@
 import redis
 from time import strftime
 import os
+from retry import retry
 
 class Stats:
 	def __init__(self):
@@ -44,6 +45,7 @@ class RedisStats(Stats):
 		self.db = redis.Redis.from_url(REDIS_URL)
 		self.config = {}
 	
+	@retry(tries=5, delay=0.1)
 	def incr(self, key, kv_dict):
 		# TODO: non critical code -> safe exceptions
 		key = self.render(key)
@@ -53,6 +55,7 @@ class RedisStats(Stats):
 			self.db.zincrby(key, val, member)
 		p.execute()
 	
+	@retry(tries=5, delay=0.1)
 	def get(self, key):
 		# TODO: non critical code -> safe exceptions
 		key = self.render(key)
