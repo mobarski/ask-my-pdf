@@ -2,7 +2,7 @@ from ai_bricks.api import openai
 import stats
 import os
 
-DEFAULT_USER = 'f779c0d6f48393ef' # community user
+DEFAULT_USER = 'cb232f0236c29dc5' # community user
 
 def use_key(key):
 	openai.use_key(key)
