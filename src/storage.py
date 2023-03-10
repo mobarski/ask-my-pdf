@@ -150,15 +150,15 @@ class LocalStorage(Storage):
 class S3Storage(Storage):
 	"S3 based encrypted storage"
 	
-	def __init__(self, secret_key):
-		prefix = os.getenv('S3_PREFIX','x1')
-		region = os.getenv('S3_REGION','sfo3')
-		bucket = os.getenv('S3_BUCKET','ask-my-pdf')
-		secret = os.getenv('S3_SECRET','')
+	def __init__(self, secret_key, **kw):
+		prefix = kw.get('prefix') or os.getenv('S3_PREFIX','index/x1')
+		region = kw.get('region') or os.getenv('S3_REGION','sfo3')
+		bucket = kw.get('bucket') or os.getenv('S3_BUCKET','ask-my-pdf')
+		url    = kw.get('url')    or os.getenv('S3_URL',f'https://{region}.digitaloceanspaces.com')
 		key    = os.getenv('S3_KEY','')
-		url    = os.getenv('S3_URL',f'https://{region}.digitaloceanspaces.com')
+		secret = os.getenv('S3_SECRET','')
 		#
-		if not key or not url:
+		if not key or not secret:
 			raise Exception("No S3 credentials in environment variables!")
 		#
 		super().__init__(secret_key)
