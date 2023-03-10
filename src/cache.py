@@ -1,3 +1,5 @@
+from retry import retry
+
 from binascii import hexlify,unhexlify
 import pickle
 import zlib
@@ -46,6 +48,14 @@ class Cache:
 	
 	def decode(self, name):
 		return unhexlify(name).decode('utf8')
+	
+	def call(self, key, fun, *a, **kw):
+		if self.has(key):
+			return self.get(key)
+		else:
+			resp = fun(*a, **kw)
+			self.put(key, resp)
+			return resp
 
 
 class DiskCache(Cache):

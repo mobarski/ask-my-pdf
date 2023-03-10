@@ -45,7 +45,7 @@ def get_vectors(text_list):
 		vectors.extend(v)
 	return {'vectors':vectors, 'usage':dict(usage), 'model':resp['model']}
 
-def index_file(f, filename, fix_text=False, frag_size=0):
+def index_file(f, filename, fix_text=False, frag_size=0, cache=None):
 	"return vector index (dictionary) for a given PDF file"
 	# calc md5
 	h = hashlib.md5()
@@ -63,7 +63,12 @@ def index_file(f, filename, fix_text=False, frag_size=0):
 			pages[i] = fix_text_problems(pages[i])
 	texts = split_pages_into_fragments(pages, frag_size)
 	t2 = now()
-	resp = get_vectors(texts)
+	if cache:
+		cache_key = f'get_vectors:{md5}:{frag_size}:{fix_text}'
+		resp = cache.call(cache_key, get_vectors, texts)
+	else:
+		resp = get_vectors(texts)
+	
 	t3 = now()
 	vectors = resp['vectors']
 	summary_prompt = f"{texts[0]}\n\nDescribe the document from which the fragment is extracted. Omit any details.\n\n" # TODO: move to prompts.py
