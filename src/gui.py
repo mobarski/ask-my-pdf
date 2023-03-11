@@ -1,4 +1,4 @@
-__version__ = "0.4.7.1"
+__version__ = "0.4.8"
 app_name = "Ask my PDF"
 
 
@@ -20,6 +20,7 @@ import prompts
 import model
 import storage
 import feedback
+import cache
 import os
 
 from time import time as now
@@ -32,6 +33,7 @@ def on_api_key_change():
 	#
 	if 'data_dict' not in ss: ss['data_dict'] = {} # used only with DictStorage
 	ss['storage'] = storage.get_storage(api_key, data_dict=ss['data_dict'])
+	ss['cache'] = cache.get_cache()
 	ss['user'] = ss['storage'].folder # TODO: refactor user 'calculation' from get_storage
 	model.set_user(ss['user'])
 	ss['feedback'] = feedback.get_feedback_adapter(ss['user'])
@@ -95,7 +97,7 @@ def index_pdf_file():
 		ss['filename'] = ss['pdf_file'].name
 		if ss['filename'] != ss.get('fielname_done'): # UGLY
 			with st.spinner(f'indexing {ss["filename"]}'):
-				index = model.index_file(ss['pdf_file'], ss['filename'], fix_text=ss['fix_text'], frag_size=ss['frag_size'])
+				index = model.index_file(ss['pdf_file'], ss['filename'], fix_text=ss['fix_text'], frag_size=ss['frag_size'], cache=ss['cache'])
 				ss['index'] = index
 				debug_index()
 				ss['filename_done'] = ss['filename'] # UGLY

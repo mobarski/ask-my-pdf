@@ -52,15 +52,16 @@ General configuration:
 
 - **FEEDBACK_MODE** - user feedback storage mode: REDIS, NONE (default)
 
-Local filesystem storage configuration:
+Local filesystem configuration (storage / cache):
 
 - **STORAGE_PATH** - directory path for index storage
+- **CACHE_PATH** - directory path for embeddings cache
 
-S3 based storage configuration:
+S3 configuration (storage / cache):
 
 - **S3_REGION** - region code
 
-- **S3_BUCKET** - bucket name
+- **S3_BUCKET** - bucket name (storage)
 
 - **S3_SECRET** - secret key
 
@@ -69,6 +70,10 @@ S3 based storage configuration:
 - **S3_URL** - URL
 
 - **S3_PREFIX** - object name prefix
+
+- **S3_CACHE_BUCKET** - bucket name (cache)
+
+- **S3_CACHE_PREFIX** - object name prefix (cache)
 
 
 Redis configuration (for persistent usage statistics / user feedback):
