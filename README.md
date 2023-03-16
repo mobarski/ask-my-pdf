@@ -8,6 +8,8 @@ Thank you for your interest in my application. Please be aware that this is only
 
 ### Ask my PDF - Question answering system built on top of GPT3
 
+
+
 🎲 The primary use case for this app is to assist users in answering  questions about board game rules based on the instruction manual. While  the app can be used for other tasks, helping users with board game rules is particularly meaningful to me since I'm an avid fan of board games  myself. Additionally, this use case is relatively harmless, even in  cases where the model may experience hallucinations.
 
 
@@ -24,7 +26,25 @@ Thank you for your interest in my application. Please be aware that this is only
 
 
 
-### Diagrams: high-level documentation
+### Installation
+
+
+
+1. Clone the repo:
+
+   `git clone https://github.com/mobarski/ask-my-pdf`
+
+2. Install dependencies:
+
+   `pip install -r ask-my-pdf/requirements.txt`
+
+3. Run the server:
+
+   `sh ask-my-pdf/src/run.sh` or `ask-my-pdf/src/run.bat`
+
+
+
+### High-level documentation
 
 
 
@@ -42,7 +62,9 @@ Thank you for your interest in my application. Please be aware that this is only
 
 ### Environment variables used for configuration
 
-General configuration:
+
+
+##### General configuration:
 
 - **STORAGE_SALT** - cryptograpic salt used when deriving user/folder name and encryption key from API key, hexadecimal notation, 2-16 characters
 
@@ -52,12 +74,19 @@ General configuration:
 
 - **FEEDBACK_MODE** - user feedback storage mode: REDIS, NONE (default)
 
-Local filesystem configuration (storage / cache):
+- **CACHE_MODE** - embeddings cache mode: S3, DISK, NONE (default)
+
+  
+
+##### Local filesystem configuration (storage / cache):
 
 - **STORAGE_PATH** - directory path for index storage
+
 - **CACHE_PATH** - directory path for embeddings cache
 
-S3 configuration (storage / cache):
+  
+
+##### S3 configuration (storage / cache):
 
 - **S3_REGION** - region code
 
@@ -75,8 +104,17 @@ S3 configuration (storage / cache):
 
 - **S3_CACHE_PREFIX** - object name prefix (cache)
 
+  
 
-Redis configuration (for persistent usage statistics / user feedback):
+##### Redis configuration (for persistent usage statistics / user feedback):
 
 - **REDIS_URL** - Redis DB URL (redis[s]://:password@host:port/[db])
+
+  
+
+##### Community version related options:
+
+- **OPENAI_KEY** - API key used for the default user
+- **COMMUNITY_DAILY_USD** - default user's daily budget
+- **COMMUNITY_USER** - default user's code
 
