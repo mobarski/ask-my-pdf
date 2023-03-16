@@ -1,4 +1,4 @@
-__version__ = "0.4.8"
+__version__ = "0.4.8.1"
 app_name = "Ask my PDF"
 
 
@@ -29,7 +29,7 @@ from time import time as now
 
 def on_api_key_change():
 	api_key = ss.get('api_key') or os.getenv('OPENAI_KEY')
-	model.use_key(api_key)
+	model.use_key(api_key) # TODO: empty api_key
 	#
 	if 'data_dict' not in ss: ss['data_dict'] = {} # used only with DictStorage
 	ss['storage'] = storage.get_storage(api_key, data_dict=ss['data_dict'])
@@ -42,10 +42,10 @@ def on_api_key_change():
 	ss['debug']['storage.folder'] = ss['storage'].folder
 	ss['debug']['storage.class'] = ss['storage'].__class__.__name__
 
-if 'user' not in ss:
-	# community user
-	on_api_key_change()
 
+ss['community_user'] = os.getenv('COMMUNITY_USER')
+if 'user' not in ss and ss['community_user']:
+	on_api_key_change() # use community key
 
 # COMPONENTS
 
@@ -79,17 +79,21 @@ def ui_info():
 	st.markdown('Source code can be found [here](https://github.com/mobarski/ask-my-pdf).')
 
 def ui_api_key():
-	st.write('## 1. Optional - enter your OpenAI API key')
-	t1,t2 = st.tabs(['community version','enter your own API key'])
-	with t1:
-		pct = model.community_tokens_available_pct()
-		st.write(f'Community tokens available: :{"green" if pct else "red"}[{int(pct)}%]')
-		st.progress(pct/100)
-		st.write('Refresh in: ' + model.community_tokens_refresh_in())
-		st.write('You can sign up to OpenAI and/or create your API key [here](https://platform.openai.com/account/api-keys)')
-		ss['community_pct'] = pct
-		ss['debug']['community_pct'] = pct
-	with t2:
+	if ss['community_user']:
+		st.write('## 1. Optional - enter your OpenAI API key')
+		t1,t2 = st.tabs(['community version','enter your own API key'])
+		with t1:
+			pct = model.community_tokens_available_pct()
+			st.write(f'Community tokens available: :{"green" if pct else "red"}[{int(pct)}%]')
+			st.progress(pct/100)
+			st.write('Refresh in: ' + model.community_tokens_refresh_in())
+			st.write('You can sign up to OpenAI and/or create your API key [here](https://platform.openai.com/account/api-keys)')
+			ss['community_pct'] = pct
+			ss['debug']['community_pct'] = pct
+		with t2:
+			st.text_input('OpenAI API key', type='password', key='api_key', on_change=on_api_key_change, label_visibility="collapsed")
+	else:
+		st.write('## 1. Enter your OpenAI API key')
 		st.text_input('OpenAI API key', type='password', key='api_key', on_change=on_api_key_change, label_visibility="collapsed")
 
 def index_pdf_file():

@@ -34,7 +34,7 @@ class DictStats(Stats):
 	
 	def get(self, key):
 		key = self.render(key)
-		return self.data[key]
+		return self.data.get(key, {})
 
 
 class RedisStats(Stats):
