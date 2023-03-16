@@ -79,7 +79,7 @@ def ui_info():
 	st.markdown('Source code can be found [here](https://github.com/mobarski/ask-my-pdf).')
 
 def ui_api_key():
-	if False: # TODO: XXX !!!
+	if ss['community_user']:
 		st.write('## 1. Optional - enter your OpenAI API key')
 		t1,t2 = st.tabs(['community version','enter your own API key'])
 		with t1:
