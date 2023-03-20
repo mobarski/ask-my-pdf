@@ -38,9 +38,11 @@ Thank you for your interest in my application. Please be aware that this is only
 
    `pip install -r ask-my-pdf/requirements.txt`
 
-3. Run the server:
+3. Run the app:
 
-   `sh ask-my-pdf/src/run.sh` or `ask-my-pdf/src/run.bat`
+   `cd ask-my-pdf/src`
+   
+   `run.sh` or `run.bat`
 
 
 
