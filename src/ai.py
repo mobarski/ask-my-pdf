@@ -44,8 +44,18 @@ def stats_callback(out, resp, self):
 	model = self.config['model']
 	usage = resp['usage']
 	usage['call_cnt'] = 1
+	if 'text' in out:
+		usage['completion_chars'] = len(out['text'])
+	elif 'texts' in out:
+		usage['completion_chars'] = sum([len(text) for text in out['texts']])
+	# TODO: prompt_chars
+	# TODO: total_chars
+	if 'rtt' in out:
+		usage['rtt'] = out['rtt']
+		usage['rtt_cnt'] = 1
 	usage_stats.incr(f'usage:v4:[date]:[user]', {f'{k}:{model}':v for k,v in usage.items()})
 	usage_stats.incr(f'hourly:v4:[date]',       {f'{k}:{model}:[hour]':v for k,v in usage.items()})
+	#print('STATS_CALLBACK', usage, flush=True) # XXX
 
 def get_community_usage_cost():
 	data = usage_stats.get(f'usage:v4:[date]:{DEFAULT_USER}')
