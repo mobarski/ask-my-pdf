@@ -134,7 +134,7 @@ def text_to_fragments(text, size, page_offset):
 
 def find_eos(text):
 	"return list of all end-of-sentence offsets"
-	return [x.span()[1] for x in re.finditer('[.!?]\s+',text)]
+	return [x.span()[1] for x in re.finditer('[.!?。]\s+',text)]
 
 ###############################################################################
 
