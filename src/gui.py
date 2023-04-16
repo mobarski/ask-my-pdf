@@ -1,4 +1,4 @@
-__version__ = "0.4.8.2"
+__version__ = "0.4.8.3"
 app_name = "Ask my PDF"
 
 
@@ -167,7 +167,7 @@ def ui_fragments():
 	st.number_input('fragments after',  0, 3, 1, key='n_frag_after')  # TODO: pass to model
 
 def ui_model():
-	models = ['gpt-3.5-turbo','text-davinci-003','text-curie-001']
+	models = ['gpt-3.5-turbo','gpt-4','text-davinci-003','text-curie-001']
 	st.selectbox('main model', models, key='model', disabled=not ss.get('api_key'))
 	st.selectbox('embedding model', ['text-embedding-ada-002'], key='model_embed') # FOR FUTURE USE
 
