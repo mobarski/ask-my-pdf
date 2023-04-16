@@ -152,7 +152,7 @@ class S3Cache(Cache):
 
 def get_cache(**kw):
 	mode = os.getenv('CACHE_MODE','').upper()
-	path = os.getenv('CACHE_PATH','').upper()
+	path = os.getenv('CACHE_PATH','')
 	if mode == 'DISK':
 		return DiskCache(path)
 	elif mode == 'S3':
