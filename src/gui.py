@@ -99,7 +99,7 @@ def ui_api_key():
 def index_pdf_file():
 	if ss['pdf_file']:
 		ss['filename'] = ss['pdf_file'].name
-		if ss['filename'] != ss.get('fielname_done'): # UGLY
+		if ss['filename'] != ss.get('filename_done'): # UGLY
 			with st.spinner(f'indexing {ss["filename"]}'):
 				index = model.index_file(ss['pdf_file'], ss['filename'], fix_text=ss['fix_text'], frag_size=ss['frag_size'], cache=ss['cache'])
 				ss['index'] = index
