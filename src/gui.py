@@ -1,5 +1,5 @@
-__version__ = "0.4.8.3"
-app_name = "Ask my PDF"
+__version__ = "1.4.6.1"
+app_name = "EduX - AskMyPDF"
 
 
 # BOILERPLATE
