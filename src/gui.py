@@ -187,7 +187,7 @@ def ui_hyde_prompt():
 	st.text_area('HyDE prompt', prompts.HYDE, key='hyde_prompt')
 
 def ui_question():
-	st.write('## 3. Generating your best route'+(f' to {ss["filename"]}' if ss.get('filename') else ''))
+	st.write('## 3. List Course Preferences and Schedule Limitations'+(f' to {ss["filename"]}' if ss.get('filename') else ''))
 	disabled = False
 	st.text_area('question', key='question', height=100, placeholder='Enter question here', help='', label_visibility="collapsed", disabled=disabled)
 
@@ -216,8 +216,8 @@ def b_ask():
 		ss['feedback_score'] = ss['feedback'].get_score()
 	score = ss.get('feedback_score',0)
 	c5.write(f'feedback score: {score}')
-	c4.checkbox('send details', True, key='send_details',
-			help='allow question and the answer to be stored in the ask-my-pdf feedback database')
+	c4.checkbox('Analytics', True, key='send_details',
+			help='Allow your PDF Degree Audit data to be used towards our research')
 	#c1,c2,c3 = st.columns([1,3,1])
 	#c2.radio('zzz',['👍',r'...',r'👎'],horizontal=True,label_visibility="collapsed")
 	#
