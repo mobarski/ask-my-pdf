@@ -215,7 +215,7 @@ def b_ask():
 		ss['feedback'].send(-1, ss, details=ss['send_details'])
 		ss['feedback_score'] = ss['feedback'].get_score()
 	score = ss.get('feedback_score',0)
-	c5.write(f'feedback score: {score}')
+	c5.write(f'Paths Calculated: {score}')
 	c4.checkbox('Analytics', True, key='send_details',
 			help='Allow your PDF Degree Audit data to be used towards our research')
 	#c1,c2,c3 = st.columns([1,3,1])
