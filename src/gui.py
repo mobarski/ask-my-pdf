@@ -305,7 +305,7 @@ def output_add(q,a):
 with st.sidebar:
 	ui_info()
 	ui_spacer(2)
-	with st.expander('advanced'):
+	with st.expander('Advanced (For Developers)'):
 		ui_show_debug()
 		b_clear()
 		ui_model()
