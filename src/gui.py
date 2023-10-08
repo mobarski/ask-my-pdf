@@ -1,5 +1,5 @@
-__version__ = "1.4.6.1"
-app_name = "EduX - AskMyPDF"
+__version__ = "1.0"
+app_name = "EduXGPT"
 
 
 # BOILERPLATE
@@ -60,7 +60,7 @@ def ui_spacer(n=2, line=False, next_n=0):
 
 def ui_info():
 	st.markdown(f"""
-	# Ask my PDF
+	# EduXGPT
 	version {__version__}
 	
 	Degree Scheduling using GPT3.
