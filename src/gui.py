@@ -280,8 +280,8 @@ def b_save():
 	api_key = ss.get('api_key')
 	disabled = not api_key or not db or not index or not name
 	help = "The file will be stored for about 90 days. Available only when using your own API key."
-	if st.button('save encrypted index in ask-my-pdf', disabled=disabled, help=help):
-		with st.spinner('saving to ask-my-pdf'):
+	if st.button('Save encrypted data in EduX Database', disabled=disabled, help=help):
+		with st.spinner('Saving to EduX'):
 			db.put(name, index)
 
 def b_delete():
