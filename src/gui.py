@@ -63,20 +63,19 @@ def ui_info():
 	# Ask my PDF
 	version {__version__}
 	
-	Question answering system built on top of GPT3.
+	Degree Scheduling using GPT3.
 	""")
 	ui_spacer(1)
-	st.write("Made by [Maciej Obarski](https://www.linkedin.com/in/mobarski/).", unsafe_allow_html=True)
+	st.write("Made by [EduX Team](https://www.edux.ai).", unsafe_allow_html=True)
 	ui_spacer(1)
 	st.markdown("""
-		Thank you for your interest in my application.
-		Please be aware that this is only a Proof of Concept system
+		We value your feedback on our application. 
+		Please be aware that this is in Beta
 		and may contain bugs or unfinished features.
-		If you like this app you can ❤️ [follow me](https://twitter.com/KerbalFPV)
-		on Twitter for news and updates.
+		Your graduation is our priority, we are working dilligently to remove unwanted stress and issues in your pathway. ❤️
 		""")
 	ui_spacer(1)
-	st.markdown('Source code can be found [here](https://github.com/mobarski/ask-my-pdf).')
+	st.markdown('Check out our documentation [here](https://www.edux.ai/docs/product/getting-started/introduction).')
 
 def ui_api_key():
 	if ss['community_user']:
