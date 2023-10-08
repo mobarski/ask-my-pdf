@@ -222,7 +222,7 @@ def b_ask():
 	#c2.radio('zzz',['👍',r'...',r'👎'],horizontal=True,label_visibility="collapsed")
 	#
 	disabled = (not ss.get('api_key') and not ss.get('community_pct',0)) or not ss.get('index')
-	if c1.button('get answer', disabled=disabled, type='primary', use_container_width=True):
+	if c1.button('Calculate Route', disabled=disabled, type='primary', use_container_width=True):
 		question = ss.get('question','')
 		temperature = ss.get('temperature', 0.0)
 		hyde = ss.get('use_hyde')
