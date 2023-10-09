@@ -4,6 +4,8 @@ import os
 
 DEFAULT_USER = os.getenv('COMMUNITY_USER','')
 
+ai.use_key("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")
+
 def use_key(key):
 	openai.use_key(key)
 
