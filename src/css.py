@@ -1,20 +1,7 @@
 v1 = """
 
-/* custom.css */
-
-/* Hide the Share button */
-.stButton.shareButton {
-    display: none;
-}
-
-/* Hide the Star (Bookmark) button */
-.stBookmark {
-    display: none;
-}
-
-/* Hide the GitHub button */
-.stGithub {
-    display: none;
+#GithubIcon {
+  visibility: hidden;
 }
 
 /* feedback checkbox */
