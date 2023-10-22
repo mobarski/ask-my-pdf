@@ -1,9 +1,5 @@
 v1 = """
 
-#GithubIcon {
-  visibility: hidden;
-}
-
 /* feedback checkbox */
 .css-18fuwiq {
  position: relative;
