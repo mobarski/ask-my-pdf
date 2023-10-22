@@ -14,13 +14,6 @@ header1 = st.empty() # for errors / messages
 header2 = st.empty() # for errors / messages
 header3 = st.empty() # for errors / messages
 
-hide_github_icon = """
-#GithubIcon {
-  visibility: hidden;
-}
-"""
-st.markdown(hide_github_icon, unsafe_allow_html=True)
-
 # IMPORTS
 
 import prompts
