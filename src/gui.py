@@ -25,6 +25,11 @@ import os
 
 from time import time as now
 
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
 # HANDLERS
 
 def on_api_key_change():
