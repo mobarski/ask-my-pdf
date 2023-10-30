@@ -4,13 +4,9 @@
 
 TASK = {
 	'v6': (
-			"Answer the question truthfully based on the text below. "
-			"Include verbatim quote and a comment where to find it in the text (page number). "
-			#"After the quote write a step by step explanation in a new paragraph. "
-			"After the quote write a step by step explanation. "
-			"Use bullet points. "
-			#"After that try to rephrase the original question so it might give better results. " 
-		),
+    "Create a UI table from the PDF that lists: Full Name (usually under 'Prepared:'), Student ID (across 'Prepared:'), Program code (without '(Page 1)'), Graduation date (without '(Page 1)'), GPA (without '(Page 1)') and Catalog year (is underneath Graduation Date and without '(Page 1)'). "
+    "Create another UI table underneath and fill in the table from the specific data from this PDF including General University Requirements, Core Courses, Electives, and fill in the table with class name, credits, and whether completed or incomplete (based on OK or NO). Group the courses such as Core courses together separate from the electives, and general education classes and also include the grade received (if the grade is C- or better it's considered OK)."
+),
 	'v5': (
 			"Answer the question truthfully based on the text below. "
 			"Include at least one verbatim quote (marked with quotation marks) and a comment where to find it in the text (ie name of the section and page number). "

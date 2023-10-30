@@ -1,5 +1,5 @@
-__version__ = "0.4.8.3"
-app_name = "Ask my PDF"
+__version__ = "1.0"
+app_name = "EduXGPT"
 
 
 # BOILERPLATE
@@ -24,6 +24,11 @@ import cache
 import os
 
 from time import time as now
+
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # HANDLERS
 
@@ -60,23 +65,22 @@ def ui_spacer(n=2, line=False, next_n=0):
 
 def ui_info():
 	st.markdown(f"""
-	# Ask my PDF
+	# EduXGPT
 	version {__version__}
 	
-	Question answering system built on top of GPT3.
+	Degree Scheduling using GPT3.
 	""")
 	ui_spacer(1)
-	st.write("Made by [Maciej Obarski](https://www.linkedin.com/in/mobarski/).", unsafe_allow_html=True)
+	st.write("Made by [EduX Team](https://www.edux.ai).", unsafe_allow_html=True)
 	ui_spacer(1)
 	st.markdown("""
-		Thank you for your interest in my application.
-		Please be aware that this is only a Proof of Concept system
+		We value your feedback on our application. 
+		Please be aware that this is in Beta
 		and may contain bugs or unfinished features.
-		If you like this app you can ❤️ [follow me](https://twitter.com/KerbalFPV)
-		on Twitter for news and updates.
+		Your graduation is our priority, we are working dilligently to remove unwanted stress and issues in your pathway. ❤️
 		""")
 	ui_spacer(1)
-	st.markdown('Source code can be found [here](https://github.com/mobarski/ask-my-pdf).')
+	st.markdown('Check out our documentation [here](https://www.edux.ai/docs/product/getting-started/introduction).')
 
 def ui_api_key():
 	if ss['community_user']:
@@ -120,7 +124,7 @@ def debug_index():
 	ss['debug']['index'] = d
 
 def ui_pdf_file():
-	st.write('## 2. Upload or select your PDF file')
+	st.write('## 2. Upload your Academic PDF Audit')
 	disabled = not ss.get('user') or (not ss.get('api_key') and not ss.get('community_pct',0))
 	t1,t2 = st.tabs(['UPLOAD','SELECT'])
 	with t1:
@@ -188,9 +192,9 @@ def ui_hyde_prompt():
 	st.text_area('HyDE prompt', prompts.HYDE, key='hyde_prompt')
 
 def ui_question():
-	st.write('## 3. Ask questions'+(f' to {ss["filename"]}' if ss.get('filename') else ''))
+	st.write('## 3. List Course Preferences and Schedule Limitations'+(f' to {ss["filename"]}' if ss.get('filename') else ''))
 	disabled = False
-	st.text_area('question', key='question', height=100, placeholder='Enter question here', help='', label_visibility="collapsed", disabled=disabled)
+	st.text_area('question', key='question', height=100, placeholder='Enter text here', help='', label_visibility="collapsed", disabled=disabled)
 
 # REF: Hypotetical Document Embeddings
 def ui_hyde_answer():
@@ -216,14 +220,14 @@ def b_ask():
 		ss['feedback'].send(-1, ss, details=ss['send_details'])
 		ss['feedback_score'] = ss['feedback'].get_score()
 	score = ss.get('feedback_score',0)
-	c5.write(f'feedback score: {score}')
-	c4.checkbox('send details', True, key='send_details',
-			help='allow question and the answer to be stored in the ask-my-pdf feedback database')
+	c5.write(f'Paths Calculated: {score}')
+	c4.checkbox('Analytics', True, key='send_details',
+			help='Allow your PDF Degree Audit data to be used towards our research')
 	#c1,c2,c3 = st.columns([1,3,1])
 	#c2.radio('zzz',['👍',r'...',r'👎'],horizontal=True,label_visibility="collapsed")
 	#
 	disabled = (not ss.get('api_key') and not ss.get('community_pct',0)) or not ss.get('index')
-	if c1.button('get answer', disabled=disabled, type='primary', use_container_width=True):
+	if c1.button('Calculate Route', disabled=disabled, type='primary', use_container_width=True):
 		question = ss.get('question','')
 		temperature = ss.get('temperature', 0.0)
 		hyde = ss.get('use_hyde')
@@ -281,8 +285,8 @@ def b_save():
 	api_key = ss.get('api_key')
 	disabled = not api_key or not db or not index or not name
 	help = "The file will be stored for about 90 days. Available only when using your own API key."
-	if st.button('save encrypted index in ask-my-pdf', disabled=disabled, help=help):
-		with st.spinner('saving to ask-my-pdf'):
+	if st.button('Save encrypted data to EduX Database', disabled=disabled, help=help):
+		with st.spinner('Saving to EduX'):
 			db.put(name, index)
 
 def b_delete():
@@ -306,7 +310,7 @@ def output_add(q,a):
 with st.sidebar:
 	ui_info()
 	ui_spacer(2)
-	with st.expander('advanced'):
+	with st.expander('Advanced (For Developers)'):
 		ui_show_debug()
 		b_clear()
 		ui_model()
