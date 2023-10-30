@@ -7,3 +7,4 @@ pycryptodome
 boto3
 redis
 retry
+python-dotenv
